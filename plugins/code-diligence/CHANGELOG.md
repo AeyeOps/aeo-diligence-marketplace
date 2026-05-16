@@ -5,6 +5,11 @@ All notable changes to the `code-diligence` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] — 2026-05-16
+
+### Fixed
+- `plugin.json` `repository` field reshaped from `{type, url}` object to a plain string, the form Claude Code's manifest schema accepts. `claude plugin install code-diligence@aeo-diligence` previously rejected the manifest; the install now succeeds end-to-end.
+
 ## [1.1.0] — 2026-05-15
 
 Initial public release.

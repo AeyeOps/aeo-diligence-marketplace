@@ -1,16 +1,32 @@
 {
   "name": "aeo-diligence",
+  "description": "AeyeOps marketplace of Claude Code plugins for private-equity technical due diligence on git portfolios.",
+  "version": "1.0.0",
   "owner": {
     "name": "AeyeOps",
-    "email": "275853971+aeyeopsdev@users.noreply.github.com"
+    "email": "275853971+aeyeopsdev@users.noreply.github.com",
+    "url": "https://github.com/AeyeOps"
   },
+  "homepage": "https://github.com/AeyeOps/aeo-diligence-marketplace",
+  "repository": "https://github.com/AeyeOps/aeo-diligence-marketplace",
+  "license": "MIT",
   "plugins": [
     {
       "name": "code-diligence",
       "source": "./plugins/code-diligence",
-      "description": "Portfolio dashboard for PE technical due diligence",
+      "description": "Portfolio dashboard for PE technical due diligence: People / Product / Process insights from any set of git repositories.",
+      "version": "1.1.1",
       "category": "analytics",
-      "tags": ["due-diligence", "git-history", "people-product-process", "pe", "code-quality"]
+      "tags": [
+        "due-diligence",
+        "git-history",
+        "people-product-process",
+        "private-equity",
+        "code-quality",
+        "observable-dashboard"
+      ],
+      "homepage": "https://github.com/AeyeOps/aeo-diligence-marketplace/tree/main/plugins/code-diligence",
+      "license": "MIT"
     }
   ]
 }

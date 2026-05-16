@@ -1,14 +1,12 @@
 {
   "name": "code-diligence",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Portfolio dashboard for PE technical due diligence: People / Product / Process insights from any set of git repositories.",
   "author": {
     "name": "AeyeOps",
     "email": "275853971+aeyeopsdev@users.noreply.github.com"
   },
   "homepage": "https://github.com/AeyeOps/aeo-diligence-marketplace",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/AeyeOps/aeo-diligence-marketplace.git"
-  }
+  "repository": "https://github.com/AeyeOps/aeo-diligence-marketplace.git",
+  "license": "MIT"
 }
