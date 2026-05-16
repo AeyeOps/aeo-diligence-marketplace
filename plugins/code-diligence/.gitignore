@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.coverage
+.ruff_cache/
+.pyright/
+
+# DuckDB warehouses (per-target, never committed)
+*.duckdb
+*.duckdb.wal
+
+# Observable build output
+templates/observable/dist/
+templates/observable/.observablehq/cache/
+node_modules/
+
+# Claude Code per-user settings (per CLAUDE.md convention)
+.claude/*.local.md
+
+# Internal build / session artifacts — not for public marketplace distribution
+.omc/
+docs/superpowers/
+
+# Secrets — defense-in-depth, prevent accidental commits
+.env
+.env.*
+*.key
+*.pem
+credentials*
+secrets*
+
+# OS
+.DS_Store

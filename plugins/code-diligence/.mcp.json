@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "diligence-warehouse": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/mcp/diligence-warehouse",
+        "python",
+        "-m",
+        "server",
+        "--warehouse",
+        "${DILIGENCE_WAREHOUSE_PATH}"
+      ]
+    },
+    "repowise": {
+      "type": "stdio",
+      "command": "repowise",
+      "args": ["mcp"]
+    }
+  }
+}

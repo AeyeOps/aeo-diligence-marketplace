@@ -1,0 +1,16 @@
+{
+  "name": "aeo-diligence",
+  "owner": {
+    "name": "AeyeOps",
+    "email": "275853971+aeyeopsdev@users.noreply.github.com"
+  },
+  "plugins": [
+    {
+      "name": "code-diligence",
+      "source": "./plugins/code-diligence",
+      "description": "Portfolio dashboard for PE technical due diligence",
+      "category": "analytics",
+      "tags": ["due-diligence", "git-history", "people-product-process", "pe", "code-quality"]
+    }
+  ]
+}

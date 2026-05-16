@@ -1,0 +1,31 @@
+# .github/workflows/ci.yml (at marketplace repo root)
+name: CI
+
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/code-diligence
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - name: Install Python deps
+        run: uv sync
+      - name: Install MCP server deps
+        working-directory: plugins/code-diligence/mcp/diligence-warehouse
+        run: uv sync
+      - name: Run tests (skips ones requiring uninstalled tools)
+        run: uv run pytest -v
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run pyright src/

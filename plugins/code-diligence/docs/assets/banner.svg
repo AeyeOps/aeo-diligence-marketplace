@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1b2a"/>
+      <stop offset="100%" stop-color="#1b2d44"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="320" fill="url(#bg)"/>
+
+  <!-- LEFT: wordmark + tagline -->
+  <g transform="translate(80, 0)">
+    <text x="0" y="150" font-family="'SF Mono', 'Menlo', 'Monaco', monospace" font-size="68" font-weight="600" fill="#f0f4fa" letter-spacing="-2">code-diligence</text>
+    <line x1="0" y1="172" x2="80" y2="172" stroke="#d4a574" stroke-width="3"/>
+    <text x="0" y="210" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="400" fill="#a9bcd8">PE-grade technical due diligence in under 30 minutes</text>
+    <text x="0" y="240" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="400" fill="#6f87a8">People  ·  Product  ·  Process    ·    one dashboard    ·    one warehouse</text>
+  </g>
+
+  <!-- RIGHT: 4×4 grid evoking the 16-card dashboard, with hotspot-style varying intensity -->
+  <g transform="translate(960, 80)">
+    <text x="80" y="-12" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#6f87a8" letter-spacing="2">THE 16 CARDS</text>
+    <g>
+      <rect x="0"   y="0"   width="32" height="32" rx="3" fill="#d4a574" opacity="0.35"/>
+      <rect x="38"  y="0"   width="32" height="32" rx="3" fill="#d4a574" opacity="0.85"/>
+      <rect x="76"  y="0"   width="32" height="32" rx="3" fill="#d4a574" opacity="0.55"/>
+      <rect x="114" y="0"   width="32" height="32" rx="3" fill="#d4a574" opacity="0.95"/>
+      <rect x="0"   y="38"  width="32" height="32" rx="3" fill="#d4a574" opacity="0.65"/>
+      <rect x="38"  y="38"  width="32" height="32" rx="3" fill="#d4a574" opacity="0.45"/>
+      <rect x="76"  y="38"  width="32" height="32" rx="3" fill="#d4a574" opacity="1.00"/>
+      <rect x="114" y="38"  width="32" height="32" rx="3" fill="#d4a574" opacity="0.40"/>
+      <rect x="0"   y="76"  width="32" height="32" rx="3" fill="#d4a574" opacity="0.75"/>
+      <rect x="38"  y="76"  width="32" height="32" rx="3" fill="#d4a574" opacity="0.55"/>
+      <rect x="76"  y="76"  width="32" height="32" rx="3" fill="#d4a574" opacity="0.35"/>
+      <rect x="114" y="76"  width="32" height="32" rx="3" fill="#d4a574" opacity="0.90"/>
+      <rect x="0"   y="114" width="32" height="32" rx="3" fill="#d4a574" opacity="0.50"/>
+      <rect x="38"  y="114" width="32" height="32" rx="3" fill="#d4a574" opacity="0.80"/>
+      <rect x="76"  y="114" width="32" height="32" rx="3" fill="#d4a574" opacity="0.60"/>
+      <rect x="114" y="114" width="32" height="32" rx="3" fill="#d4a574" opacity="0.30"/>
+    </g>
+  </g>
+</svg>
