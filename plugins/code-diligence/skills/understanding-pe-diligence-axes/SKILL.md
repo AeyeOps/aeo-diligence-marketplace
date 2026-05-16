@@ -1,6 +1,6 @@
 ---
 name: understanding-pe-diligence-axes
-description: Reference for the People / Product / Process taxonomy used in code-diligence dashboards — what each axis covers, which warehouse tables back each card, which tools populate those tables, and how to write narratives for each card without hallucinating numbers. Auto-load when reasoning about diligence insights, mapping a finding to a warehouse query, or generating narratives.
+description: Reference for the People / Product / Process taxonomy, card-to-table mappings, confidence model, and narrative-writing contract (headline-first, cite warehouse numbers, hedge on low confidence). Use when interpreting what a dashboard card measures, writing or updating narrative rows, understanding confidence classifications, or avoiding hallucination in PE write-ups — not for querying the warehouse or executing tool commands.
 ---
 
 code-diligence organizes findings along three axes. Pick the per-axis reference for the card-to-table map; come back here for the cross-axis narration rules.

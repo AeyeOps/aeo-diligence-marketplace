@@ -1,6 +1,6 @@
 ---
 name: interpreting-tool-output
-description: Map raw output from the six wrapped diligence tools (code-maat, hercules, git-of-theseus, git-fame, git-truck, repowise) onto code-diligence warehouse tables, including each tool's quirks and cross-check policy. Auto-load when reasoning about raw tool output, debugging mismatched warehouse data, or deciding which source to trust for a metric.
+description: Reference for mapping raw tool output (code-maat, hercules, git-of-theseus, git-fame, git-truck, repowise) to warehouse tables, tool-specific quirks, and cross-check rules. Use when debugging warehouse mismatches, investigating why two tools report different values for the same metric, deciding which canonical source to trust, or querying a specific warehouse table to compare per-tool entries — distinct from open-ended dashboard drill-down (asker) or writing narrative copy (axes).
 ---
 
 ## Quick reference — where to look first

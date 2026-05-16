@@ -1,6 +1,6 @@
 ---
 name: ingesting-target
-description: Run the code-diligence ingest pipeline for a target — clone repos, walk git history, run cheap (and optionally expensive) tools, populate the warehouse, and generate curation YAMLs. Use when the user invokes /code-diligence:ingest.
+description: Initial setup for a new code-diligence target — clone repos, walk git history, run the tool wrappers, populate the warehouse, and generate curation YAMLs. Use when the user invokes /code-diligence:ingest, or sets up code-diligence on a target for the first time (no warehouse exists yet). For already-ingested targets that need new commits picked up, use refreshing-target.
 argument-hint: <target> [--quick | --full]
 allowed-tools: Bash, Read
 ---

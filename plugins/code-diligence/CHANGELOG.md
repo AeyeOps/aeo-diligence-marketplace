@@ -5,6 +5,21 @@ All notable changes to the `code-diligence` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.2] — 2026-05-16
+
+### Added
+- `scripts/skill_eval/` — a non-interactive trigger-accuracy harness for the six skill descriptions. One `claude -p --disable-slash-commands` call per run; default judge model is Haiku 4.5. Includes 21 happy-path + 10 adversarial test cases probing boundary risks between sibling skills.
+
+### Changed
+- Tightened five skill descriptions based on harness output and a `claude-code-guide` agent review (`scripts/skill_eval/review.md`):
+  - `asking-diligence` — adds an "open-ended drill-down" framing and an explicit "not for which-tool-fed-which-column" exclusion that previously bled into `interpreting-tool-output`'s territory.
+  - `building-dashboard` — unchanged.
+  - `ingesting-target` — now states "initial setup for a new target (no warehouse exists yet)" and points already-ingested workflows at `refreshing-target`.
+  - `interpreting-tool-output` — leads with "Reference for mapping…" and lists explicit use cases (debugging mismatches, comparing per-tool entries, source-of-truth decisions); excludes open-ended drill-down and narrative writing.
+  - `refreshing-target` — explicit "warehouse already exists" gate and adds "recompute / rerun / update" as natural-language triggers.
+  - `understanding-pe-diligence-axes` — emphasizes narrative authorship + taxonomy semantics + confidence model; explicit exclusion of warehouse queries and tool commands.
+- Harness aggregate accuracy: 31/31 across 5 consecutive runs after the tightening (baseline was 29/31).
+
 ## [1.1.1] — 2026-05-16
 
 ### Fixed

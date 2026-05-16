@@ -1,6 +1,6 @@
 ---
 name: refreshing-target
-description: Re-run the code-diligence ingest pipeline against an already-ingested target so its warehouse picks up new commits and tool output without a full reset. Use when the user invokes /code-diligence:refresh.
+description: Incrementally refresh an existing code-diligence target — pull new commits, rerun the tool wrappers, and update the warehouse without resetting analyst-confirmed curations. Use when the target was already ingested (its warehouse exists) and the user invokes /code-diligence:refresh, or asks to recompute, rerun, or update an existing target's data.
 argument-hint: <target>
 allowed-tools: Bash, Read
 ---

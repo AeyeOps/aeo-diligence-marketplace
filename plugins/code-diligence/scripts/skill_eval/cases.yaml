@@ -1,0 +1,141 @@
+# Test bank for skill-description triggering accuracy.
+#
+# Each case lists a user-message prompt and the expected best-fit skill
+# (or `null` if no skill should fire). The judge LLM sees ONLY the six
+# diligence skill descriptions — no plugin code, no prior context — so
+# results measure description quality in isolation.
+#
+# Coverage strategy per skill:
+#   - 1 slash-command form (mechanical, easy)
+#   - 1 natural-language paraphrase (the real test)
+#   - 1 negative (close-but-wrong; should map to a sibling or null)
+
+cases:
+  # --- asking-diligence ---
+  - id: ask-slash
+    prompt: "/code-diligence:ask acme why is the payments-service a hotspot?"
+    expected: asking-diligence
+  - id: ask-natural
+    prompt: "Drill into a specific finding on the acme target's dashboard without recomputing the warehouse."
+    expected: asking-diligence
+  - id: ask-followup
+    prompt: "I want to ask follow-up questions about why one repo carries bus-factor risk."
+    expected: asking-diligence
+
+  # --- building-dashboard ---
+  - id: dash-slash
+    prompt: "/code-diligence:dashboard acme"
+    expected: building-dashboard
+  - id: dash-natural
+    prompt: "Render the Observable dashboard for the acme target."
+    expected: building-dashboard
+  - id: dash-privacy
+    prompt: "Build the diligence dashboard but keep the working-pattern card off."
+    expected: building-dashboard
+
+  # --- ingesting-target ---
+  - id: ingest-slash
+    prompt: "/code-diligence:ingest acme --quick"
+    expected: ingesting-target
+  - id: ingest-natural
+    prompt: "Run the full code-diligence ingest pipeline on the acme org's repos."
+    expected: ingesting-target
+  - id: ingest-firsttime
+    prompt: "I want to set up code-diligence on a new target for the first time."
+    expected: ingesting-target
+
+  # --- interpreting-tool-output ---
+  - id: interp-tool
+    prompt: "I'm looking at raw code-maat coupling output and I want to know which warehouse table it lands in."
+    expected: interpreting-tool-output
+  - id: interp-mismatch
+    prompt: "git-fame and git-truck disagree on per-author LOC for a repo — which one should I trust?"
+    expected: interpreting-tool-output
+  - id: interp-hercules
+    prompt: "Where does hercules burndown data get persisted in the diligence warehouse?"
+    expected: interpreting-tool-output
+
+  # --- refreshing-target ---
+  - id: refresh-slash
+    prompt: "/code-diligence:refresh acme"
+    expected: refreshing-target
+  - id: refresh-natural
+    prompt: "The acme target is already ingested — I want to pick up new commits and rerun the tools without resetting state."
+    expected: refreshing-target
+  - id: refresh-followup
+    prompt: "How do I incrementally update an already-ingested code-diligence target before the next deal stage?"
+    expected: refreshing-target
+
+  # --- understanding-pe-diligence-axes ---
+  - id: axes-people
+    prompt: "What does the People axis cover in PE technical diligence?"
+    expected: understanding-pe-diligence-axes
+  - id: axes-narration
+    prompt: "Help me write the narrative for the hotspot-map card without hallucinating numbers."
+    expected: understanding-pe-diligence-axes
+  - id: axes-confidence
+    prompt: "What does it mean when the dashboard says a Process-axis card has 'low confidence'?"
+    expected: understanding-pe-diligence-axes
+
+  # --- Negative controls (should NOT trigger any diligence skill) ---
+  - id: neg-unrelated
+    prompt: "Help me debug a flaky Jest test."
+    expected: null
+  - id: neg-generic-pe
+    prompt: "What's a typical EBITDA multiple for a SaaS rollup?"
+    expected: null
+  - id: neg-git-generic
+    prompt: "Show me how to write a git pre-commit hook in bash."
+    expected: null
+
+  # --- Adversarial cases (boundary probes; see review.md) ---
+
+  # (a) warehouse internals — asker vs interpreting-tool-output vs axes
+  - id: adv-warehouse-query
+    prompt: "Query the ownership_share table to find which source reported different LOC for this repo."
+    expected: interpreting-tool-output
+    rationale: "Warehouse table + source disagreement; could misroute to asker or axes."
+  - id: adv-missing-tool-data
+    prompt: "Why is the coupling_pairs table empty when I ran the full ingest?"
+    expected: interpreting-tool-output
+    rationale: "Direct warehouse-table question; could confuse with axes or asker."
+
+  # (b) card vs axis boundary
+  - id: adv-card-axes-boundary
+    prompt: "Explain what the 'hidden coupling' card is trying to measure in the Product axis."
+    expected: understanding-pe-diligence-axes
+    rationale: "Card name + axis + measurement intent; could route to interpreting-tool-output."
+  - id: adv-write-card-narrative
+    prompt: "I need to update the narrative row for the 'bus factor' card in the people axis."
+    expected: understanding-pe-diligence-axes
+    rationale: "Narrative writing is in axes; could misroute to asker (read-only) or refreshing."
+
+  # (c) regenerate / recompute probes
+  - id: adv-regenerate-dashboard
+    prompt: "Regenerate the dashboard with updated narrative text."
+    expected: building-dashboard
+    rationale: "'Regenerate' could confuse refresh (reruns tools) with dashboard (rebuilds UI)."
+  - id: adv-recompute-warehouse
+    prompt: "The acme warehouse already exists — I need to recompute it after adding new repos to its existing config."
+    expected: refreshing-target
+    rationale: "'Recompute' on an existing target with config edits could misroute to ingest; refresh is the incremental path."
+
+  # (d) generic terms that should NOT fire
+  - id: adv-generic-bus-factor
+    prompt: "Explain the concept of bus factor in software engineering."
+    expected: null
+    rationale: "Generic bus-factor definition; should not fire even though tools mention it."
+  - id: adv-generic-hotspot
+    prompt: "What's a code hotspot and why should we care?"
+    expected: null
+    rationale: "Generic hotspot definition without diligence context; product axis mentions hotspots."
+
+  # (e) Claude Code feature mentioned but not diligence
+  - id: adv-hook-and-diligence
+    prompt: "Set up a PostToolUse hook that runs code-diligence after warehouse updates."
+    expected: null
+    rationale: "Hook automation question, not diligence analysis."
+  - id: adv-mcp-warehouse
+    prompt: "Can I write a custom MCP server to query the diligence warehouse?"
+    expected: null
+    rationale: "MCP development question, not using code-diligence."

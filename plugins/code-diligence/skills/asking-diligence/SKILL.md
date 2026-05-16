@@ -1,6 +1,6 @@
 ---
 name: asking-diligence
-description: Spawn a read-only conversational analyst over a code-diligence target's warehouse and repo clones so the user can drill into a specific finding without recomputing the pipeline. Use when the user invokes /code-diligence:ask.
+description: Spawn a read-only conversational analyst over a code-diligence target's warehouse and repo clones for open-ended drill-down into a finding (e.g., "why is this repo a hotspot?", "who carries bus-factor risk for X?"). Use when the user invokes /code-diligence:ask. Distinct from investigating which tool fed which warehouse column — use interpreting-tool-output for that.
 argument-hint: <target> <question>
 allowed-tools: Task, Bash, Read
 ---
