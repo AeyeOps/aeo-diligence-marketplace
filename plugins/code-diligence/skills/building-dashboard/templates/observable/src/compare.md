@@ -11,7 +11,10 @@ const targets = await query(`
          (SELECT confidence_class FROM axis_confidence WHERE target_id = t.target_id AND axis='process') AS process_conf
   FROM targets t ORDER BY t.name
 `);
-display(Inputs.table(targets));
+display(Inputs.table(targets, {
+  header: {target_id: "Target ID", name: "Name", people_conf: "People", product_conf: "Product", process_conf: "Process"},
+  format: {name: value => html`<span style="white-space:normal;overflow-wrap:anywhere;">${value}</span>`},
+}));
 ```
 
 ## Headline metrics across targets
@@ -37,7 +40,12 @@ display(Inputs.table(headline.map(row => ({
   ...row,
   avg_top_owner_pct: row.avg_top_owner_pct === null ? "Not available" : row.avg_top_owner_pct,
 })), {
-  format: {avg_top_owner_pct: value => typeof value === "number" ? new Intl.NumberFormat(undefined, {style: "percent", maximumFractionDigits: 1}).format(value) : value},
+  header: {target: "Target", repos: "Repos", authors: "Authors", abandoned_repos: "Abandoned", avg_top_owner_pct: "Avg. owner share"},
+  width: {target: 240, repos: 60, authors: 60, abandoned_repos: 90, avg_top_owner_pct: 140},
+  format: {
+    target: value => html`<span style="white-space:normal;overflow-wrap:anywhere;">${value}</span>`,
+    avg_top_owner_pct: value => typeof value === "number" ? new Intl.NumberFormat(undefined, {style: "percent", maximumFractionDigits: 1}).format(value) : value,
+  },
 }));
 ```
 
