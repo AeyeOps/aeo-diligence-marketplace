@@ -147,20 +147,21 @@ def _wait_for_completion(repo_abs: str, branch: str, deadline: float, cache_root
     )
 
 
-def _terminate(proc: subprocess.Popen) -> None:
-    """SIGTERM the process group (npx spawns child processes); SIGKILL fallback."""
+def _terminate(proc: subprocess.Popen, reader: threading.Thread) -> None:
+    """Stop the launcher and its children before opening their cache database."""
     try:
         os.killpg(proc.pid, signal.SIGTERM)
     except ProcessLookupError:
         pass
+    reader.join(timeout=_SIGTERM_GRACE_S)
     try:
-        proc.wait(timeout=_SIGTERM_GRACE_S)
-    except subprocess.TimeoutExpired:
-        try:
-            os.killpg(proc.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        proc.wait(timeout=2)
+        os.killpg(proc.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    proc.wait(timeout=2)
+    reader.join(timeout=2)
+    if reader.is_alive():
+        raise GitTruckError("git-truck output remained open after stopping its process group")
 
 
 def _query_ownership(db_path: Path) -> list[GitTruckOwnership]:
@@ -210,8 +211,7 @@ def run_git_truck(repo: Path) -> list[GitTruckOwnership]:
             view = _kick_view(port)
             _wait_for_completion(repo_abs, branch, time.monotonic() + _ANALYSIS_TIMEOUT_S, cache_root)
         finally:
-            _terminate(proc)
-            reader.join(timeout=_SIGTERM_GRACE_S)
+            _terminate(proc, reader)
             if view is not None:
                 view.join(timeout=_SIGTERM_GRACE_S)
         return _query_ownership(db_path)
