@@ -1,10 +1,5 @@
-"""Wrapper for casperdcl/git-fame (per-author LOC/commits/files attribution).
-
-git-fame is a CLI: `git-fame --format=json --show=name,email <repo>`.
-We parse its JSON output into GitFameRecord and persist to ownership_share.
-"""
+"""Collect git-fame ownership by email, merging author-name aliases upstream."""
 import json
-import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,7 +10,6 @@ import duckdb
 
 @dataclass(frozen=True)
 class GitFameRecord:
-    author_name: str
     author_email: str
     owned_loc: int
     owned_commits: int
@@ -29,7 +23,7 @@ class GitFameError(RuntimeError):
 def run_git_fame(repo: Path) -> list[GitFameRecord]:
     """Spawn git-fame against repo and return parsed records."""
     proc = subprocess.run(
-        ["git-fame", "--format=json", "--show=name,email", "--silent-progress", str(repo)],
+        ["git-fame", "--format=json", "--show=email", "--silent-progress", str(repo)],
         capture_output=True, text=True, timeout=300,
     )
     if proc.returncode != 0:
@@ -38,16 +32,13 @@ def run_git_fame(repo: Path) -> list[GitFameRecord]:
 
 
 def parse_git_fame_json(payload: dict[str, Any]) -> list[GitFameRecord]:
-    """Parse git-fame --format=json output. Format: {columns: [...], data: [[...]]}."""
+    """Parse git-fame --format=json --show=email ownership rows."""
     columns = payload["columns"]
     out = []
     for values in payload["data"]:
         row = dict(zip(columns, values, strict=True))
-        match = re.fullmatch(r"(.*) <(.*)>", row["Author"])
-        if match is None:
-            raise ValueError("git-fame output must include both author name and email")
         out.append(GitFameRecord(
-            author_name=match[1].strip(), author_email=match[2].strip().lower(),
+            author_email=row["Author"].strip().lower(),
             owned_loc=int(row["loc"]), owned_commits=int(row["coms"]), owned_files=int(row["fils"]),
         ))
     return out

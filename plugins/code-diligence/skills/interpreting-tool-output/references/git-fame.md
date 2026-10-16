@@ -12,9 +12,9 @@ Casper da Costa-Luis's per-author attribution tool. Canonical source for `owners
 
 The wrapper shells out to:
 
-    git-fame --format=json --show=name,email <repo>
+    git-fame --format=json --show=email <repo>
 
-The JSON payload contains `columns` and `data`; `Author` is `Name <email>`, with `loc`, `coms`, and `fils` numeric columns. The parser uses those named columns and rejects an unexpected format. Timeout: 300 seconds. Failures are recorded by the ingest isolation boundary.
+The JSON payload contains `columns` and `data`; `Author` is an email, with `loc`, `coms`, and `fils` numeric columns. Email mode merges author-name aliases and counts their distinct files before emitting rows. The parser uses those named columns. Timeout: 300 seconds. Failures are recorded by the ingest isolation boundary.
 
 ## Why canonical
 
@@ -27,7 +27,7 @@ The JSON payload contains `columns` and `data`; `Author` is `Name <email>`, with
 
 ## Quirks
 
-- **Email normalization.** `parse_git_fame_json` lower-cases emails and strips whitespace so two casings of the same address collapse to one row.
+- **Email normalization.** `parse_git_fame_json` lower-cases emails and strips whitespace for warehouse joins.
 - **No generated-code filter.** git-fame respects `.gitattributes` for binary detection but has no built-in way to skip generated source. Filter at the dashboard layer via `repo_classification`.
 
 ## Cross-check

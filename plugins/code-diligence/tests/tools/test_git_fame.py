@@ -16,7 +16,7 @@ def test_run_git_fame_returns_records(synthetic_target: Path) -> None:
     assert len(records) >= 2
     assert all(isinstance(r, GitFameRecord) for r in records)
     emails = {r.author_email for r in records}
-    assert "pat@acme.com" in emails or "Pat Smith" in {r.author_name for r in records}
+    assert "pat@acme.com" in emails
 
 
 @pytest.mark.skipif(not shutil.which("git-fame"), reason="git-fame not installed")
@@ -42,8 +42,8 @@ def test_parse_git_fame_json_fixture() -> None:
     from code_diligence.tools.git_fame import parse_git_fame_json
     sample = {
         "data": [
-            ["Pat S <pat@acme.com>", "30", "5", "3", "0.5"],
-            ["Mike B <mike@acme.com>", "10", "2", "1", "0.2"],
+            ["pat@acme.com", "30", "5", "3", "0.5"],
+            ["mike@acme.com", "10", "2", "1", "0.2"],
         ],
         "columns": ["Author", "loc", "coms", "fils", "distribution"],
     }
