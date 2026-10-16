@@ -141,7 +141,7 @@ When a card shows "low confidence," it means the underlying source data was inco
 <details>
 <summary><strong>Installing the optional analysis tools</strong></summary>
 
-Use the host's package manager or mise for git, uv, Node 22+, Go and Java 17+. Install the optional Python CLIs in isolated uv tool environments:
+Use the [host installation guidance](skills/ingesting-target/references/tool-prerequisites.md#choose-the-installation-environment) to select compatible tools for macOS or Linux on ARM64 or x86_64, or a Linux execution environment on Windows. Use its package manager or mise for git, uv, Node 22+, Go and Java 17+. Install the optional Python CLIs in isolated uv tool environments:
 
 ```sh
 uv tool install git-fame
