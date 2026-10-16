@@ -1,8 +1,10 @@
 import * as duckdb from "npm:@duckdb/duckdb-wasm";
 import {DataType, util} from "npm:apache-arrow@17.0.0";
 import {FileAttachment} from "observablehq:stdlib";
+import MarkdownIt from "npm:markdown-it@14.3.3";
 
 let connection;
+const markdown = new MarkdownIt({html: false});
 
 async function openWarehouse() {
   const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
@@ -59,7 +61,10 @@ export async function narrative(targetId, axis, sectionKey) {
     "SELECT body_md, tier FROM narratives WHERE target_id = ? AND axis = ? AND section_key = ?",
     [targetId, axis, sectionKey]
   );
-  return rows[0] ?? {body_md: "No narrative has been generated for this card.", tier: null};
+  const row = rows[0] ?? {body_md: "No narrative has been generated for this card.", tier: null};
+  const body = document.createElement("span");
+  body.innerHTML = markdown.renderInline(row.body_md);
+  return {body, tier: row.tier};
 }
 
 export async function axisConfidence(targetId, axis) {

@@ -39,7 +39,7 @@ display(Inputs.table(dora.map(row => ({
 }));
 ```
 
-> ${narr.body_md}
+> ${narr.body}
 
 ---
 
@@ -68,7 +68,7 @@ display(Inputs.table(review.map(row => ({
 }));
 ```
 
-> ${narr2.body_md}
+> ${narr2.body}
 
 ---
 
@@ -88,7 +88,7 @@ display(html`<p>${ci.length} workflow groups. Scroll within the table to see all
 display(Inputs.table(ci, {format: {success_rate: value => percent.format(value)}}));
 ```
 
-> ${narr3.body_md}
+> ${narr3.body}
 
 ---
 
@@ -107,7 +107,7 @@ const narr4 = await narrative(target_id, "process", "issue_triage_health");
 display(Inputs.table(issues));
 ```
 
-> ${narr4.body_md}
+> ${narr4.body}
 
 ---
 
@@ -132,7 +132,7 @@ if (allow_working_pattern_card) {
     y: { label: "Day (UTC)", tickFormat: day => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day] },
     height: 200, color: { scheme: "blues" },
   }));
-  display(html`<blockquote>${narr5.body_md}</blockquote>`);
+  display(html`<blockquote>${narr5.body}</blockquote>`);
 } else {
   display(html`<p><em>Working pattern signals disabled — set <code>allow_working_pattern_card: true</code> in settings to enable.</em></p>`);
 }
