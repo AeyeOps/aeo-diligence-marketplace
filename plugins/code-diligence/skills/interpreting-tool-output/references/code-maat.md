@@ -24,7 +24,7 @@ Two-step shell flow per repo:
 
 2. **Invoke code-maat** once per analysis:
 
-       java -jar <plugin-root>/vendor/code-maat-1.0.4-SNAPSHOT-standalone.jar \
+       java -jar <plugin-root>/vendor/code-maat-1.0.4-standalone.jar \
             -l <log_dump> -c git2 -a <analysis>
 
    The JAR is vendored under `vendor/` at the plugin root. If it's absent, `run_code_maat_analysis` raises `CodeMaatError` with a pointer to `vendor/README.md`. Timeout per analysis: 600s.

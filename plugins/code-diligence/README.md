@@ -118,7 +118,7 @@ python -m http.server -d ~/data/code-diligence/dashboard
 # → http://localhost:8000
 ```
 
-> **Optional analysis tools** (`git-fame`, `git-of-theseus`, `hercules`, `code-maat`, `repowise`) unlock additional cards. The pipeline detects what's installed and gracefully skips the rest — missing tools are recorded as failures on Health while the other analyses continue. Install whatever subset matches the depth you need.
+> **Optional analysis tools** (`git-fame`, `git-of-theseus`, `hercules`, `code-maat`, `repowise`) unlock additional evidence. The skills check availability, explain the results lost through each gap, and establish whether to install/repair it or proceed with reduced coverage. The CLI records tool failures on Health while other analyses continue; a successful CLI exit does not establish full coverage.
 >
 > Full optional-tool install commands: [Installing the optional analysis tools](#installing-the-optional-analysis-tools) below.
 
@@ -141,20 +141,19 @@ When a card shows "low confidence," it means the underlying source data was inco
 <details>
 <summary><strong>Installing the optional analysis tools</strong></summary>
 
-The plugin runs without any of these. Each adds capability — install whatever subset matches the depth you need.
+Use the host's package manager or mise for git, uv, Node 22+, Go and Java 17+. Install the optional Python CLIs in isolated uv tool environments:
 
 ```sh
-brew install uv node openjdk@17 go
 uv tool install git-fame
 uv tool install git-of-theseus
-go install github.com/src-d/hercules/cmd/hercules@latest
-
-# code-maat JAR (one-time vendor)
-cd "$CLAUDE_PLUGIN_ROOT/vendor"
-curl -LO https://github.com/adamtornhill/code-maat/releases/download/<version>/code-maat-<version>-standalone.jar
+uv tool install repowise
+DO_NOT_TRACK=1 repowise telemetry disable
+repowise telemetry status
 ```
 
-`git-truck` is invoked via `npx -y git-truck@3.3.0` by the wrapper — no global install needed.
+Download `code-maat-1.0.4-standalone.jar` from [release v1.0.4](https://github.com/adamtornhill/code-maat/releases/tag/v1.0.4) into the plugin's `vendor/` directory. Hercules needs a binary for the host architecture or a source checkout build; its replacement directives prevent the versioned `go install` shortcut. The [prerequisite reference](skills/ingesting-target/references/tool-prerequisites.md) contains the verified build steps, the Linux ARM64 Repowise header remedy, every tool's coverage consequence, and the warehouse MCP connection path.
+
+`git-truck` is invoked via `npx -y git-truck@3.3.0` — no global install is needed. Package downloads and its npm update check use the network. Repowise's adapter explicitly disables usage telemetry. Local analyzers, GitHub collection and hosted agent narration have different network boundaries; see the prerequisite reference before describing a run as local-only.
 
 Which tool feeds which card: [`skills/ingesting-target/references/tool-prerequisites.md`](skills/ingesting-target/references/tool-prerequisites.md).
 

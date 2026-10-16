@@ -1,5 +1,6 @@
 """Collect Repowise health and dead-code findings through its CLI."""
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -13,6 +14,7 @@ def fetch_repowise_findings_for_repo(repo: Path) -> list[dict]:
         proc = subprocess.run(
             ["repowise", command, str(repo), "--format", "json", "--no-workspace", *extra],
             capture_output=True, text=True, timeout=300, check=True,
+            env=os.environ | {"REPOWISE_TELEMETRY_DISABLED": "1"},
         )
         payload = json.loads(proc.stdout)
         rows = payload["findings"] if command == "health" else payload

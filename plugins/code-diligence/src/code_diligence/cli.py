@@ -42,12 +42,7 @@ def _infer_full_name(repo_dir: Path) -> str:
 
 
 def _collect_tooling_versions(*, full: bool) -> dict[str, str]:
-    """Return {tool_name: version} for every tool reachable on this machine.
-
-    Always records the in-tree walker wrapper. For each external CLI, runs its
-    --version flag and records the trimmed output; tools not on PATH are
-    recorded as "not-installed" so the column reflects environment provenance.
-    """
+    """Report tool versions and missing prerequisites for the requested tier."""
     from importlib.metadata import PackageNotFoundError
     from importlib.metadata import version as _pkg_version
     try:
@@ -60,7 +55,7 @@ def _collect_tooling_versions(*, full: bool) -> dict[str, str]:
         ("git-of-theseus", ["git-of-theseus-analyze", "--version"]),
     ]
     expensive = [
-        ("hercules", ["hercules", "--version"]),
+        ("hercules", ["hercules", "version"]),
         ("repowise", ["repowise", "--version"]),
     ]
     candidates = cheap + (expensive if full else [])
