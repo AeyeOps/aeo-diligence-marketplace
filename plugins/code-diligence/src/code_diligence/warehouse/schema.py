@@ -6,7 +6,7 @@ between versions live in `migrations.py`.
 """
 import duckdb
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 DDL_STATEMENTS: list[str] = [
 
@@ -197,8 +197,7 @@ DDL_STATEMENTS: list[str] = [
       scope          VARCHAR NOT NULL,
       finding_type   VARCHAR NOT NULL,
       severity       VARCHAR,
-      evidence       JSON,
-      PRIMARY KEY (repo_id, scope, finding_type)
+      evidence       JSON
     )
     """,
 
