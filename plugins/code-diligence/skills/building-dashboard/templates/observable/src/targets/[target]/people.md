@@ -109,7 +109,7 @@ const activity_rows = await query(`
 `, [target_id]);
 const narr3 = await narrative(target_id, "people", "contributor_activity_timeline");
 display(Plot.plot({
-  marks: [Plot.areaY(activity_rows, { x: "month", y: "active_authors", fill: "class", tip: true })],
+  marks: [Plot.rectY(activity_rows, { x: "month", interval: "month", y: "active_authors", fill: "class", tip: true })],
   color: { legend: true },
   height: 240,
 }));
