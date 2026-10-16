@@ -27,7 +27,7 @@ def test_sanitize_matches_git_truck_v3_path_rules() -> None:
     assert _sanitize("abc123") == "abc123_"
 
 
-@pytest.mark.skipif(not _HAS_NPX, reason="npx not on PATH (Node 20+ required)")
+@pytest.mark.skipif(not _HAS_NPX, reason="npx not on PATH (Node 22+ required)")
 def test_run_git_truck_returns_records(synthetic_target: Path) -> None:
     """End-to-end: drive git-truck v3 against the synthetic api repo and verify
     we extract per-author dominant-file ownership from its DuckDB cache."""
@@ -38,7 +38,7 @@ def test_run_git_truck_returns_records(synthetic_target: Path) -> None:
     assert all(r.owned_loc >= 0 for r in records)
 
 
-@pytest.mark.skipif(not _HAS_NPX, reason="npx not on PATH (Node 20+ required)")
+@pytest.mark.skipif(not _HAS_NPX, reason="npx not on PATH (Node 22+ required)")
 def test_run_git_truck_persists_through_full_pipeline(
     synthetic_target: Path, tmp_path: Path,
 ) -> None:

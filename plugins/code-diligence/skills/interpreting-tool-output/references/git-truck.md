@@ -38,6 +38,6 @@ Compare these rows explicitly with git-fame only after accounting for their diff
 
 ## Prerequisites
 
-- `node` and `npx` on PATH. Node 20+ recommended.
+- `node` and `npx` on PATH. The pinned git-truck release requires Node 22+.
 - First run downloads `git-truck@3.3.0` via npx; subsequent runs reuse the npx cache.
 - `$TMPDIR` must be writable — that's where the analysis cache lives.

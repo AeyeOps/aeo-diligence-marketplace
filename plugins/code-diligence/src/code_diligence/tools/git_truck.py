@@ -184,7 +184,7 @@ def _query_ownership(db_path: Path) -> list[GitTruckOwnership]:
 
 def run_git_truck(repo: Path) -> list[GitTruckOwnership]:
     if not shutil.which("npx"):
-        raise GitTruckError("npx not on PATH; install Node 20+")
+        raise GitTruckError("npx not on PATH; install Node 22+")
     if not (repo / ".git").exists():
         raise GitTruckError(f"not a git repository: {repo}")
 

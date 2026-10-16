@@ -15,7 +15,7 @@ Each external binary the ingest pipeline expects, what it needs, and what happen
 |---|---|---|
 | `git-fame` | `uv tool install git-fame` (callable as `git fame`) | `ownership_share (source='git-fame')` stays empty; People `knowledge_concentration` card shows "data unavailable" |
 | `git-of-theseus-analyze` | `uv tool install git-of-theseus` | `code_age_buckets` stays empty; Product `code_aging_chart` shows "data unavailable" |
-| `npx` (drives `git-truck@3.3.0`) | Node 20+; `npx` ships with Node. First run downloads `git-truck` via `npx --yes`. | `ownership_share (source='git-truck')` stays empty; cross-check only |
+| `npx` (drives `git-truck@3.3.0`) | Node 22+; `npx` ships with Node. First run downloads `git-truck` via `npx --yes`. | `ownership_share (source='git-truck')` stays empty; cross-check only |
 
 ## Required for `--full` (expensive tools + platform pass)
 
