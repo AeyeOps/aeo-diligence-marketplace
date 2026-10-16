@@ -4,8 +4,6 @@
 import { query } from "./data/warehouse.js";
 import * as Plot from "npm:@observablehq/plot";
 
-// The compare page expects the build script to have merged multiple target warehouses
-// into the bundled DuckDB. For v1, we merge by ATTACHing each target's .duckdb under a schema name.
 const targets = await query(`
   SELECT t.target_id, t.name,
          (SELECT confidence_class FROM axis_confidence WHERE target_id = t.target_id AND axis='people') AS people_conf,
@@ -29,11 +27,18 @@ const headline = await query(`
             WHERE r.target_id = t.target_id) AS avg_top_owner_pct
   FROM targets t ORDER BY t.name
 `);
-display(Plot.plot({
+if (headline.some(row => row.abandoned_repos > 0)) display(Plot.plot({
   marks: [Plot.barX(headline, { x: "abandoned_repos", y: "target", sort: { y: "x" }, fill: "crimson" })],
   x: { label: "Abandoned repos" },
+  marginLeft: 250,
 }));
-display(Inputs.table(headline));
+else display(html`<p>No repositories are currently classified as abandoned in these targets.</p>`);
+display(Inputs.table(headline.map(row => ({
+  ...row,
+  avg_top_owner_pct: row.avg_top_owner_pct === null ? "Not available" : row.avg_top_owner_pct,
+})), {
+  format: {avg_top_owner_pct: value => typeof value === "number" ? new Intl.NumberFormat(undefined, {style: "percent", maximumFractionDigits: 1}).format(value) : value},
+}));
 ```
 
-(More cross-target charts can be added as `code_diligence` is run on more targets and patterns emerge.)
+File ownership estimates require code-maat results. See each target's Health page when an estimate is unavailable.

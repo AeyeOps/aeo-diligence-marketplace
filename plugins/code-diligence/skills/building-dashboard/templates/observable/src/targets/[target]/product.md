@@ -8,7 +8,7 @@ const target_id = observable.params.target;
 
 ## File change hotspots
 
-Revision counts show change frequency. Complexity is not measured by the git walker.
+Revision counts show change frequency. Complexity is not measured by the git walker. Hover a label or point to read its full repository and file path.
 
 ```js
 const hotspots = await query(`
@@ -29,17 +29,20 @@ if (!hotspots.length) {
   display(html`<p>No file-change rows match the current repository classifications. Review <a href="curation.html">Curation</a> and <a href="health.html">Health</a>.</p>`);
 } else display(Plot.plot({
   marks: [
+    Plot.axisY({label: null, lineWidth: 28, textOverflow: "ellipsis-middle"}),
     Plot.dot(hotspots, {
       x: "revisions", y: d => `${d.repo}/${d.path}`,
       r: d => Math.sqrt(d.hotspot_score),
       fill: d => d.hotspot_score > 100 ? "crimson" : "steelblue",
       stroke: "white", strokeWidth: 0.5,
-      title: d => `${d.repo}/${d.path}\nrev=${d.revisions} cmplx=${d.complexity_proxy?.toFixed(1)}`,
+      title: d => `${d.repo}/${d.path}\nRevisions: ${d.revisions}`,
       tip: true,
     }),
   ],
   x: { label: "Revisions" },
-  y: { label: "File", domain: hotspots.slice(0, 20).map(d => `${d.repo}/${d.path}`) },
+  y: { domain: hotspots.slice(0, 20).map(d => `${d.repo}/${d.path}`) },
+  marginLeft: 300,
+  height: Math.max(240, 24 * Math.min(20, hotspots.length)),
 }));
 ```
 
@@ -58,7 +61,8 @@ const couplings = await query(`
   ORDER BY cp.lift DESC LIMIT 100
 `, [target_id]);
 const narr2 = await narrative(target_id, "product", "hidden_coupling_matrix");
-display(Inputs.table(couplings, { columns: ["repo_id", "file_a", "file_b", "support_pct", "lift"] }));
+if (couplings.length) display(Inputs.table(couplings, { columns: ["repo_id", "file_a", "file_b", "support_pct", "lift"] }));
+else display(html`<p>No coupling rows match the current filters. See <a href="health.html">Health</a> for code-maat collection results.</p>`);
 ```
 
 > ${narr2.body_md}
@@ -79,8 +83,13 @@ const narr3 = await narrative(target_id, "product", "code_aging_chart");
 if (!ages.length) {
   display(html`<p>No code-age data was collected. See <a href="health.html">Health</a> for git-of-theseus results.</p>`);
 } else display(Plot.plot({
-  marks: [Plot.areaY(ages, { x: "bucket_start_year", y: "surviving_loc", fill: "steelblue" })],
+  marks: [
+    Plot.barY(ages, { x: d => String(d.bucket_start_year), y: "surviving_loc", fill: "steelblue", tip: true }),
+    Plot.text(ages, { x: d => String(d.bucket_start_year), y: "surviving_loc", text: d => d.surviving_loc.toLocaleString(), dy: -8 }),
+  ],
   x: { label: "Code vintage year" }, y: { label: "Surviving LOC today" },
+  marginLeft: 80,
+  marginTop: 30,
 }));
 ```
 
@@ -125,7 +134,8 @@ const abandoned = await query(`
   ORDER BY r.last_commit_at ASC
 `, [target_id]);
 const narr5 = await narrative(target_id, "product", "abandoned_area_register");
-display(Inputs.table(abandoned, { columns: ["repo", "last_commit_at", "last_author", "last_msg"] }));
+if (abandoned.length) display(Inputs.table(abandoned, { columns: ["repo", "last_commit_at", "last_author", "last_msg"] }));
+else display(html`<p>No repositories are currently classified as abandoned. Review classifications in <a href="curation.html">Curation</a>.</p>`);
 ```
 
 > ${narr5.body_md}
