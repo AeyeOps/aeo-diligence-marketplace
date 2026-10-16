@@ -46,7 +46,7 @@ if (!hotspots.length) {
 }));
 ```
 
-> ${narr.body_md}
+> ${narr.body}
 
 ---
 
@@ -77,7 +77,7 @@ if (couplings.length) {
 else display(html`<p>No coupling rows match the current filters. See <a href="health.html">Health</a> for code-maat collection results.</p>`);
 ```
 
-> ${narr2.body_md}
+> ${narr2.body}
 
 ---
 
@@ -105,7 +105,7 @@ if (!ages.length) {
 }));
 ```
 
-> ${narr3.body_md}
+> ${narr3.body}
 
 ---
 
@@ -137,7 +137,7 @@ if (burndown.length) {
 }
 ```
 
-> ${narr4.body_md}
+> ${narr4.body}
 
 ---
 
@@ -157,7 +157,7 @@ if (abandoned.length) display(Inputs.table(abandoned, { columns: ["repo", "last_
 else display(html`<p>No repositories are currently classified as abandoned. Review classifications in <a href="curation.html">Curation</a>.</p>`);
 ```
 
-> ${narr5.body_md}
+> ${narr5.body}
 
 ---
 
@@ -174,7 +174,7 @@ const narr6 = await narrative(target_id, "product", "tech_stack_drift");
 display(Inputs.table(stacks, { columns: ["repo", "language_primary", "languages"] }));
 ```
 
-> ${narr6.body_md}
+> ${narr6.body}
 
 ```js
 display(html`<a href="../${observable.params.target}.html">Target overview</a> · <a href="/index.html">Portfolio</a>`);

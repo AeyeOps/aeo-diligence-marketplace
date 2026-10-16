@@ -68,7 +68,7 @@ display(Inputs.table(bus_factor_rows.map(row => ({
 }));
 ```
 
-> ${narr.body_md}
+> ${narr.body}
 
 ---
 
@@ -99,7 +99,7 @@ if (!conc_rows.length) {
 }));
 ```
 
-> ${narr2.body_md}
+> ${narr2.body}
 
 ---
 
@@ -126,7 +126,7 @@ display(Plot.plot({
 }));
 ```
 
-> ${narr3.body_md}
+> ${narr3.body}
 
 ---
 
@@ -176,7 +176,7 @@ graph.append("g").attr("fill", "currentColor").attr("font-size", 11).selectAll("
 display(nodes.length ? graph.node() : html`<p>No shared file changes were found for this target.</p>`);
 ```
 
-> ${narr4.body_md}
+> ${narr4.body}
 
 ---
 
@@ -195,7 +195,7 @@ const narr5 = await narrative(target_id, "people", "hero_dependency_register");
 display(Inputs.table(heroes, { columns: ["repo", "file", "owner", "owned_pct"] }));
 ```
 
-> ${narr5.body_md}
+> ${narr5.body}
 
 ```js
 display(html`<a href="../${observable.params.target}.html">Target overview</a> · <a href="/index.html">Portfolio</a>`);
