@@ -29,7 +29,7 @@ You will receive:
 
 ## Hard rules
 
-- Every claim must be backed by a value you actually queried. If the query returned zero rows or the data is missing, say "data unavailable for this card" — do not fabricate.
+- Every claim must be backed by evidence you actually queried. For an empty result, inspect underlying tables, filters, curations and collection failures. Say "data unavailable for this card" when evidence is missing; otherwise describe that no records match the examined scope. Neither an empty result nor an empty expected table proves no risk or a failed collection.
 - Do not propose actions, recommendations, or grades. The narrator describes; the analyst judges.
 - Do not write more than one narrative per invocation. The orchestrator calls you once per `(axis, section_key)`.
 - Describe only the metrics actually collected. Release cadence and PR cycle time are not deployment frequency or production lead time; workflow failures are not change failure rate. Respect the working-pattern opt-in supplied by the parent.
