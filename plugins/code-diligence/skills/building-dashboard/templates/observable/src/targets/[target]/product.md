@@ -87,7 +87,7 @@ if (!ages.length) {
     Plot.barY(ages, { x: d => String(d.bucket_start_year), y: "surviving_loc", fill: "steelblue", tip: true }),
     Plot.text(ages, { x: d => String(d.bucket_start_year), y: "surviving_loc", text: d => d.surviving_loc.toLocaleString(), dy: -8 }),
   ],
-  x: { label: "Code vintage year" }, y: { label: "Surviving LOC today" },
+  x: { type: "band", label: "Code vintage year" }, y: { label: "Surviving LOC today" },
   marginLeft: 80,
   marginTop: 30,
 }));
