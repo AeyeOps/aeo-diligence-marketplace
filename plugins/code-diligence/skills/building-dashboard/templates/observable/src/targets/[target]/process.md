@@ -109,8 +109,9 @@ if (allow_working_pattern_card) {
   const narr5 = await narrative(target_id, "process", "working_pattern_signals");
   display(Plot.plot({
     marks: [Plot.cell(patterns, { x: "hour", y: "dow", fill: "commits", inset: 0.5, tip: true })],
-    fx: { interval: 0 },
     facet: { data: patterns, x: "repo", marginTop: 30 },
+    x: { label: "Hour (UTC)" },
+    y: { label: "Day (UTC)", tickFormat: day => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day] },
     height: 200, color: { scheme: "blues" },
   }));
   display(html`<blockquote>${narr5.body_md}</blockquote>`);
