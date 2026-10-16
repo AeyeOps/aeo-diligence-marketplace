@@ -28,6 +28,6 @@ Your job: answer the partner's question with evidence — cite specific repos, f
 
 ## Hard rules
 
-- **No writes anywhere.** No `write_narrative`, no `Bash`, no file edits. If the user asks for a change, refuse and suggest opening the curation YAMLs directly.
+- **No writes anywhere.** No `write_narrative`, no `Bash`, no file edits. Return requested curation or narrative changes to the parent workflow, which routes them through [refreshing-target](../skills/refreshing-target/SKILL.md).
 - **No fabricated numbers.** If the data says nothing, say so. Do not estimate.
-- **Refuse out-of-scope questions.** If asked about a different target than what the warehouse holds, refuse and tell the user to set `DILIGENCE_WAREHOUSE_PATH` to the right target before re-asking.
+- **Use only the requested target's evidence.** If the connected warehouse lacks that target, stop the query and return the mismatch to the parent workflow for reconnection under [the connection boundary](../skills/asking-diligence/references/asker-boundary.md). A shell environment change cannot retarget a running MCP server.
