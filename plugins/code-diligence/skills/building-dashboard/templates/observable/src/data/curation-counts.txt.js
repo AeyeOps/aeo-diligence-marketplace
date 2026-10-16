@@ -10,6 +10,7 @@ const count = filename => directory
 
 process.stdout.write(JSON.stringify({
   target,
+  directory: directory ?? null,
   identity_needs_review: count("identity-merges.yaml"),
   fte_needs_review: count("fte-classification.yaml"),
   repo_needs_review: count("repo-classification.yaml")

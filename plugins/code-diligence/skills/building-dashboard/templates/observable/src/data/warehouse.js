@@ -1,5 +1,5 @@
 import * as duckdb from "npm:@duckdb/duckdb-wasm";
-import {DataType} from "npm:apache-arrow@17.0.0";
+import {DataType, util} from "npm:apache-arrow@17.0.0";
 import {FileAttachment} from "observablehq:stdlib";
 
 let connection;
@@ -32,6 +32,7 @@ function plainValue(value, type) {
     return new Date(value);
   }
   if (typeof value === "bigint") return Number(value);
+  if (value !== null && DataType.isDecimal(type)) return util.bigNumToNumber(value, type.scale);
   return value;
 }
 

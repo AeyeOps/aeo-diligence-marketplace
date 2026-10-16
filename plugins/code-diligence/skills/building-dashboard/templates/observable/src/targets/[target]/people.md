@@ -41,11 +41,14 @@ const narr = await narrative(target_id, "people", "bus_factor_map");
 ```
 
 ```js
+const bus_factor_estimates = bus_factor_rows.filter(row => row.bus_factor_estimate !== null);
 if (!bus_factor_rows.length) {
   display(html`<p>No ownership data matches the repository classifications. Review <a href="curation.html">Curation</a> and <a href="health.html">Health</a>.</p>`);
+} else if (!bus_factor_estimates.length) {
+  display(html`<p>No bus-factor estimate is established from the available confirmed FTE ownership. Review contributor classifications in <a href="curation.html">Curation</a>.</p>`);
 } else display(Plot.plot({
   marks: [
-    Plot.barX(bus_factor_rows, {
+    Plot.barX(bus_factor_estimates, {
       x: "bus_factor_estimate", y: "repo", sort: { y: "x" },
       fill: d => d.bus_factor_estimate <= 1 ? "crimson" : d.bus_factor_estimate <= 2 ? "orange" : "steelblue",
       tip: true,
@@ -53,9 +56,16 @@ if (!bus_factor_rows.length) {
   ],
   x: { label: "Confirmed FTEs covering 50% of attributed LOC" },
   y: { label: null },
-  height: Math.max(120, 24 * bus_factor_rows.length),
+  marginLeft: 200,
+  height: Math.max(120, 24 * bus_factor_estimates.length),
 }));
-display(Inputs.table(bus_factor_rows, {columns: ["repo", "confirmed_ftes", "bus_factor_estimate"]}));
+display(Inputs.table(bus_factor_rows.map(row => ({
+  ...row,
+  bus_factor_estimate: row.bus_factor_estimate === null ? "Not established" : row.bus_factor_estimate,
+})), {
+  columns: ["repo", "confirmed_ftes", "bus_factor_estimate"],
+  format: {bus_factor_estimate: value => String(value)},
+}));
 ```
 
 > ${narr.body_md}
@@ -85,6 +95,7 @@ if (!conc_rows.length) {
 } else display(Plot.plot({
   marks: [Plot.barX(conc_rows, { x: "top1_pct", y: "repo", sort: { y: "x" }, fill: d => d.top1_pct >= 60 ? "crimson" : "steelblue", tip: true })],
   x: { label: "% owned by top-1 author", domain: [0, 100] },
+  marginLeft: 200,
 }));
 ```
 

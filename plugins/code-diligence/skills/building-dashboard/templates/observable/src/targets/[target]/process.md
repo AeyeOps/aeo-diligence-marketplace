@@ -7,13 +7,15 @@ const target_id = observable.params.target;
 const conf = await axisConfidence(target_id, "process");
 const config = await FileAttachment("../../data/config.json").json();
 const allow_working_pattern_card = !!config.allow_working_pattern_card;
+const percent = new Intl.NumberFormat(undefined, {style: "percent", maximumFractionDigits: 1});
+const formatRate = value => typeof value === "number" ? percent.format(value) : value;
 ```
 
 > Confidence: **${conf.confidence_class}** (${conf.signal_completeness_pct?.toFixed?.(0) ?? 0}% signal complete)
 
 ## Delivery indicators
 
-Release counts, PR cycle time, and workflow failure rates are repository indicators. Production deployment and incident data are not collected, so these are not DORA metrics.
+Release counts, PR cycle time, and workflow failure rates are repository indicators. Release counts include only GitHub release records collected in the last 30 days; zero means no such records are in the warehouse. See Health for collection failures. Production deployment and incident data are not collected, so these are not DORA metrics.
 
 ```js
 const dora = await query(`
@@ -28,7 +30,13 @@ const dora = await query(`
   FROM repos r WHERE r.target_id = ?
 `, [target_id]);
 const narr = await narrative(target_id, "process", "dora_quadrant");
-display(Inputs.table(dora, { columns: ["repo", "releases_l30d", "avg_pr_cycle_time_h", "workflow_failure_rate"] }));
+display(Inputs.table(dora.map(row => ({
+  ...row,
+  workflow_failure_rate: row.workflow_failure_rate === null ? "Not established" : row.workflow_failure_rate,
+})), {
+  columns: ["repo", "releases_l30d", "avg_pr_cycle_time_h", "workflow_failure_rate"],
+  format: {workflow_failure_rate: formatRate},
+}));
 ```
 
 > ${narr.body_md}
@@ -48,7 +56,16 @@ const review = await query(`
   WHERE r.target_id = ? GROUP BY r.repo_id, r.name
 `, [target_id]);
 const narr2 = await narrative(target_id, "process", "review_discipline");
-display(Inputs.table(review));
+display(Inputs.table(review.map(row => ({
+  ...row,
+  self_merge_rate: row.self_merge_rate === null ? "Not established" : row.self_merge_rate,
+  merge_without_review_rate: row.merge_without_review_rate === null ? "Not established" : row.merge_without_review_rate,
+})), {
+  format: {
+    self_merge_rate: formatRate,
+    merge_without_review_rate: formatRate,
+  },
+}));
 ```
 
 > ${narr2.body_md}
@@ -67,7 +84,8 @@ const ci = await query(`
   ORDER BY success_rate ASC
 `, [target_id]);
 const narr3 = await narrative(target_id, "process", "ci_health");
-display(Inputs.table(ci));
+display(html`<p>${ci.length} workflow groups. Scroll within the table to see all collected workflows.</p>`);
+display(Inputs.table(ci, {format: {success_rate: value => percent.format(value)}}));
 ```
 
 > ${narr3.body_md}
