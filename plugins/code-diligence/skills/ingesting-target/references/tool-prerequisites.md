@@ -2,9 +2,26 @@
 
 Each external binary the ingest pipeline expects, what it needs, and what happens when it's missing.
 
+## Contents
+
+- [Choose the installation environment](#choose-the-installation-environment)
+- [Explain and resolve coverage gaps](#explain-and-resolve-coverage-gaps)
+- [Local analysis and network use](#local-analysis-and-network-use)
+- [Required tools](#required-for-all-tiers), [lightweight analyzers](#optional-analyzers-used-by---quick-and---full), [deep analyzers](#additional-optional-analyzers-used-by---full), and [vendored assets](#vendored)
+- [Native installation details](#native-installation-details)
+- [Failure recording](#how-the-pipeline-records-missing-tools), [warehouse outputs](#what-each-present-tool-populates), and [CI coverage](#ci-behavior)
+
+## Choose the installation environment
+
+Identify the OS and CPU architecture where ingestion and MCP will actually run, including any container, emulation or WSL environment. Match binaries, Python wheels and runtime dependencies to that environment. ARM64 assets may be named `arm64` or `aarch64`; Intel/AMD 64-bit assets may be named `x86_64` or `amd64`.
+
+On macOS (Apple Silicon or Intel) and Linux (ARM64 or x86_64), use the host's existing package or runtime manager and compatible upstream releases. On Windows, choose a Linux execution environment such as an existing [WSL distribution](https://learn.microsoft.com/en-us/windows/wsl/about): the current git-truck adapter uses POSIX process-group cleanup. Keep the project, analyzers and warehouse MCP in that same environment. If a new environment is needed, explain the choice before setting it up.
+
+When a matching binary or wheel is unavailable, check the upstream source-build path and its compiler or development-header requirements. Use the version-specific remedies below when the installed version and failure match.
+
 ## Explain and resolve coverage gaps
 
-Before ingest or refresh, check the requested tier's executables with `command -v` and their supported version commands. Check Java and the exact JAR path separately; `java -version` alone does not establish code-maat availability. Verify the active runtime exposes the warehouse MCP tools and query `targets` to confirm the warehouse, after closing any ingest writer. A configured server is not a connected server. For an initial target, connect it after the warehouse exists.
+Before ingest or refresh, select tools for the [execution environment](#choose-the-installation-environment), then check the requested tier's executables with `command -v` and their supported version commands. Check Java and the exact JAR path separately; `java -version` alone does not establish code-maat availability. Verify the active runtime exposes the warehouse MCP tools and query `targets` to confirm the warehouse, after closing any ingest writer. A configured server is not a connected server. For an initial target, connect it after the warehouse exists.
 
 For every confirmed gap, tell the user:
 
