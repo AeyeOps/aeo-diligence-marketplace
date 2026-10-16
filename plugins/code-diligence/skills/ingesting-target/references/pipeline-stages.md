@@ -63,7 +63,7 @@ Per repo: `pr_metrics`, `actions_metrics`, `release_metrics`, `issue_metrics`. D
 
 ## Stage 9 — Tooling versions and completion
 
-`update_tooling_versions(...)` records available tool versions in `targets.tooling_versions`. The CLI prints curation counts and recorded failures, updates `last_refreshed_at`, and closes the warehouse.
+`update_tooling_versions(...)` records available tool versions in `targets.tooling_versions`. The CLI prints curation counts and recorded failures, stores the completion instant as UTC in `last_refreshed_at`, and closes the warehouse. The dashboard converts that instant to the viewer's local time.
 
 ## After the CLI — Narration and dashboard
 

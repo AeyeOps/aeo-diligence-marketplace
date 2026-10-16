@@ -240,7 +240,10 @@ def ingest(
             import yaml
             entries = yaml.safe_load((curation_dir / filename).read_text())
             console.print(f"{filename}: {len(entries['needs_review'])} entries need review")
-        conn.execute("UPDATE targets SET last_refreshed_at = CURRENT_TIMESTAMP WHERE target_id = ?", [s.target_id])
+        conn.execute(
+            "UPDATE targets SET last_refreshed_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC' WHERE target_id = ?",
+            [s.target_id],
+        )
         failures = conn.execute(
             "SELECT tool, class, COUNT(*) FROM tool_failures WHERE target_id = ? GROUP BY tool, class",
             [s.target_id],
