@@ -11,22 +11,24 @@ const allow_working_pattern_card = !!config.allow_working_pattern_card;
 
 > Confidence: **${conf.confidence_class}** (${conf.signal_completeness_pct?.toFixed?.(0) ?? 0}% signal complete)
 
-## DORA quadrant
+## Delivery indicators
+
+Release counts, PR cycle time, and workflow failure rates are repository indicators. Production deployment and incident data are not collected, so these are not DORA metrics.
 
 ```js
 const dora = await query(`
   SELECT r.name AS repo,
          (SELECT COUNT(*) FROM release_metrics rm WHERE rm.repo_id = r.repo_id
-           AND rm.released_at >= CURRENT_DATE - INTERVAL '30 days') AS deploys_l30d,
+           AND rm.released_at >= CURRENT_DATE - INTERVAL '30 days') AS releases_l30d,
          (SELECT AVG(EXTRACT(EPOCH FROM (pm.merged_at - pm.opened_at))/3600.0)
-           FROM pr_metrics pm WHERE pm.repo_id = r.repo_id AND pm.merged_at IS NOT NULL) AS avg_lead_time_h,
+           FROM pr_metrics pm WHERE pm.repo_id = r.repo_id AND pm.merged_at IS NOT NULL) AS avg_pr_cycle_time_h,
          (SELECT 1.0 - AVG(CASE WHEN am.conclusion='success' THEN 1.0 ELSE 0.0 END)
-           FROM actions_metrics am WHERE am.repo_id = r.repo_id) AS change_failure_rate,
-         NULL AS mttr_h  -- MTTR requires incident data; out of scope for v1
+           FROM actions_metrics am WHERE am.repo_id = r.repo_id AND am.conclusion IS NOT NULL) AS workflow_failure_rate,
+         NULL AS mttr_h
   FROM repos r WHERE r.target_id = ?
 `, [target_id]);
 const narr = await narrative(target_id, "process", "dora_quadrant");
-display(Inputs.table(dora, { columns: ["repo", "deploys_l30d", "avg_lead_time_h", "change_failure_rate"] }));
+display(Inputs.table(dora, { columns: ["repo", "releases_l30d", "avg_pr_cycle_time_h", "workflow_failure_rate"] }));
 ```
 
 > ${narr.body_md}
@@ -40,8 +42,8 @@ const review = await query(`
   SELECT r.name AS repo,
          AVG(pm.review_latency_hours) AS avg_review_latency_h,
          AVG(pm.num_reviewers) AS avg_reviewers,
-         AVG(CASE WHEN pm.was_self_merged THEN 1.0 ELSE 0.0 END) AS self_merge_rate,
-         AVG(CASE WHEN pm.approvals = 0 AND pm.merged_at IS NOT NULL THEN 1.0 ELSE 0.0 END) AS merge_without_review_rate
+         AVG(CASE WHEN pm.merged_at IS NULL OR pm.was_self_merged IS NULL THEN NULL WHEN pm.was_self_merged THEN 1.0 ELSE 0.0 END) AS self_merge_rate,
+         AVG(CASE WHEN pm.merged_at IS NULL THEN NULL WHEN pm.approvals = 0 THEN 1.0 ELSE 0.0 END) AS merge_without_review_rate
   FROM pr_metrics pm JOIN repos r ON r.repo_id = pm.repo_id
   WHERE r.target_id = ? GROUP BY r.repo_id, r.name
 `, [target_id]);
@@ -61,7 +63,7 @@ const ci = await query(`
          AVG(CASE WHEN am.conclusion='success' THEN 1.0 ELSE 0.0 END) AS success_rate,
          AVG(am.duration_seconds) AS avg_duration_s
   FROM actions_metrics am JOIN repos r ON r.repo_id = am.repo_id
-  WHERE r.target_id = ? GROUP BY r.repo_id, r.name, am.workflow_name
+  WHERE r.target_id = ? AND am.conclusion IS NOT NULL GROUP BY r.repo_id, r.name, am.workflow_name
   ORDER BY success_rate ASC
 `, [target_id]);
 const narr3 = await narrative(target_id, "process", "ci_health");
@@ -105,15 +107,19 @@ if (allow_working_pattern_card) {
     GROUP BY r.repo_id, r.name, dow, hour
   `, [target_id]);
   const narr5 = await narrative(target_id, "process", "working_pattern_signals");
-  // Heatmap: facet by repo, x=hour, y=dow, fill=commits
   display(Plot.plot({
     marks: [Plot.cell(patterns, { x: "hour", y: "dow", fill: "commits", inset: 0.5, tip: true })],
-    fx: { interval: 0 },
     facet: { data: patterns, x: "repo", marginTop: 30 },
+    x: { label: "Hour (UTC)" },
+    y: { label: "Day (UTC)", tickFormat: day => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day] },
     height: 200, color: { scheme: "blues" },
   }));
   display(html`<blockquote>${narr5.body_md}</blockquote>`);
 } else {
   display(html`<p><em>Working pattern signals disabled — set <code>allow_working_pattern_card: true</code> in settings to enable.</em></p>`);
 }
+```
+
+```js
+display(html`<a href="../${observable.params.target}.html">Target overview</a> · <a href="/index.html">Portfolio</a>`);
 ```

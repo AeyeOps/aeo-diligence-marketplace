@@ -19,11 +19,12 @@ def test_parse_cohorts_json_fixture() -> None:
     """Pure parser test — works without git-of-theseus installed."""
     sample = {
         "y": [
-            [100, 50, 25],  # earlier snapshot
-            [80, 60, 40],   # latest snapshot
+            [100, 80],
+            [50, 60],
+            [25, 40],
         ],
         "ts": ["2020-01-01T00:00:00", "2024-01-01T00:00:00"],
-        "labels": ["2019", "2020-06", "2021"],
+        "labels": ["Code added in 2019", "Code added in 2020", "Code added in 2021"],
     }
     records = parse_cohorts_json(sample)
     assert len(records) == 3
@@ -38,14 +39,13 @@ def test_parse_cohorts_json_empty() -> None:
     assert parse_cohorts_json({"y": []}) == []
 
 
-def test_parse_cohorts_json_skips_non_year_labels() -> None:
+def test_parse_cohorts_json_rejects_non_year_labels() -> None:
     sample = {
-        "y": [[10, 20]],
-        "labels": ["nope", "2022"],
+        "y": [[10], [20]],
+        "labels": ["nope", "Code added in 2022"],
     }
-    records = parse_cohorts_json(sample)
-    assert len(records) == 1
-    assert records[0].bucket_start_year == 2022
+    with pytest.raises(ValueError, match="unexpected git-of-theseus cohort label"):
+        parse_cohorts_json(sample)
 
 
 @pytest.mark.skipif(not shutil.which("git-of-theseus-analyze"), reason="git-of-theseus not installed")
@@ -83,7 +83,7 @@ def test_persist_replaces_existing_rows(tmp_path: Path) -> None:
             CodeAgeBucket(bucket_start_year=2020, surviving_loc=100),
             CodeAgeBucket(bucket_start_year=2021, surviving_loc=200),
         ])
-        # Second call replaces
+
         persist_git_of_theseus(conn, repo_id="acme/api", buckets=[
             CodeAgeBucket(bucket_start_year=2022, surviving_loc=50),
         ])

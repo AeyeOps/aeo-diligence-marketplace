@@ -1,10 +1,10 @@
-import pytest
 from pathlib import Path
+
+from code_diligence.github.pulls import fetch_and_persist_prs
 from code_diligence.warehouse.connection import open_warehouse
 from code_diligence.warehouse.migrations import migrate
-from code_diligence.warehouse.targets import register_target
 from code_diligence.warehouse.repos import upsert_repo
-from code_diligence.github.pulls import fetch_and_persist_prs
+from code_diligence.warehouse.targets import register_target
 
 
 def test_fetch_and_persist_prs(httpx_mock, tmp_path: Path) -> None:
@@ -18,6 +18,15 @@ def test_fetch_and_persist_prs(httpx_mock, tmp_path: Path) -> None:
             "requested_reviewers": [],
         }],
         headers={},
+    )
+    httpx_mock.add_response(
+        url="https://api.github.com/repos/acme/api/pulls/1",
+        json={
+            "number": 1, "created_at": "2026-01-01T00:00:00Z",
+            "merged_at": "2026-01-02T00:00:00Z", "closed_at": "2026-01-02T00:00:00Z",
+            "additions": 50, "deletions": 5, "user": {"login": "pat"},
+            "merged_by": {"login": "pat"},
+        },
     )
     httpx_mock.add_response(
         url="https://api.github.com/repos/acme/api/pulls/1/reviews?per_page=100&page=1",
@@ -34,6 +43,6 @@ def test_fetch_and_persist_prs(httpx_mock, tmp_path: Path) -> None:
         rows = conn.execute("SELECT pr_number, num_reviewers, was_self_merged, review_latency_hours FROM pr_metrics").fetchall()
     assert len(rows) == 1
     assert rows[0][0] == 1
-    assert rows[0][1] == 1  # one reviewer (mike)
-    assert rows[0][2] is True  # author == merger
+    assert rows[0][1] == 1
+    assert rows[0][2] is True
     assert rows[0][3] is not None and rows[0][3] >= 0

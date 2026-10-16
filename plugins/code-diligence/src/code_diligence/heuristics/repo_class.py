@@ -18,7 +18,7 @@ class RepoFacts:
     repo_path: Path
     last_commit_at: datetime | None
     total_loc: int
-    file_extension_loc: dict[str, int]   # {".py": 3000, ".md": 200, ...}
+    file_extension_loc: dict[str, int]
 
 
 @dataclass(frozen=True)
@@ -53,7 +53,10 @@ def _signal_recency(facts: RepoFacts, abandoned_threshold_days: int) -> float:
     """1.0 if commit in last 90d; 0.0 if older than abandoned_threshold_days."""
     if facts.last_commit_at is None:
         return 0.0
-    age_days = (datetime.now(UTC) - facts.last_commit_at.astimezone(UTC)).days
+    last_commit = facts.last_commit_at
+    if last_commit.tzinfo is None:
+        last_commit = last_commit.replace(tzinfo=UTC)
+    age_days = (datetime.now(UTC) - last_commit).days
     if age_days <= 90:
         return 1.0
     if age_days >= abandoned_threshold_days:
@@ -71,7 +74,7 @@ def _signal_docs_dominant(facts: RepoFacts) -> float:
 def classify_repo(facts: RepoFacts, *, abandoned_threshold_days: int = 180) -> RepoClassification:
     sig: dict[str, float | bool] = {}
 
-    # Marker-based classes win when present
+
     sig["is_fork"] = _signal_is_fork(facts)
     if sig["is_fork"]:
         return RepoClassification(facts.repo_id, "fork", 0.95, sig)

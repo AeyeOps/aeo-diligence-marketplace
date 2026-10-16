@@ -53,7 +53,7 @@ def _prefix_sim(email_a: str, email_b: str) -> float:
     short, long_ = (pa, pb) if len(pa) <= len(pb) else (pb, pa)
     if short in long_:
         return 0.85
-    # Token-set overlap on prefix character bigrams
+
     bigrams_a = {pa[i:i+2] for i in range(len(pa) - 1)}
     bigrams_b = {pb[i:i+2] for i in range(len(pb) - 1)}
     return _jaccard(bigrams_a, bigrams_b)
@@ -84,8 +84,8 @@ def propose_merges(
         score = score_identity_pair(a, b)
         if score < candidate_threshold:
             continue
-        # Canonical chosen by commit count; ties go to alphabetically smaller email
-        if (a.total_commits, -ord(a.email[0])) >= (b.total_commits, -ord(b.email[0])):
+
+        if (-a.total_commits, a.email) <= (-b.total_commits, b.email):
             canon, alias = a, b
         else:
             canon, alias = b, a

@@ -1,52 +1,70 @@
-import * as duckdb from "@duckdb/duckdb-wasm";
+import * as duckdb from "npm:@duckdb/duckdb-wasm";
+import {DataType} from "npm:apache-arrow@17.0.0";
+import {FileAttachment} from "observablehq:stdlib";
 
-let _cached;
+let connection;
 
-/** Load and cache a DuckDB-WASM connection over the target warehouse. */
-export async function getDB() {
-  if (_cached) return _cached;
-  const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-  const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
-  const worker_url = URL.createObjectURL(
-    new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
+async function openWarehouse() {
+  const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
+  const workerUrl = URL.createObjectURL(
+    new Blob([`importScripts(${JSON.stringify(bundle.mainWorker)});`], {type: "text/javascript"})
   );
-  const worker = new Worker(worker_url);
-  const logger = new duckdb.ConsoleLogger("WARNING");
-  const db = new duckdb.AsyncDuckDB(logger, worker);
-  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-  URL.revokeObjectURL(worker_url);
-
-  // The build script copies the active target warehouse to data/warehouse.duckdb.
-  const conn = await db.connect();
-  await conn.query(`ATTACH 'data/warehouse.duckdb' AS wh (READ_ONLY)`);
-  await conn.query("USE wh");
-  _cached = { db, conn };
-  return _cached;
+  const worker = new Worker(workerUrl);
+  const db = new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING), worker);
+  try {
+    await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+  } finally {
+    URL.revokeObjectURL(workerUrl);
+  }
+  const bytes = await FileAttachment("./warehouse.duckdb").arrayBuffer();
+  await db.registerFileBuffer("warehouse.duckdb", new Uint8Array(bytes));
+  await db.open({path: "warehouse.duckdb", accessMode: duckdb.DuckDBAccessMode.READ_ONLY});
+  return {db, conn: await db.connect()};
 }
 
-/** Run a SELECT and return rows as plain JS objects. */
+export function getDB() {
+  connection ??= openWarehouse();
+  return connection;
+}
+
+function plainValue(value, type) {
+  if (value !== null && (DataType.isDate(type) || DataType.isTimestamp(type))) {
+    return new Date(value);
+  }
+  if (typeof value === "bigint") return Number(value);
+  return value;
+}
+
 export async function query(sql, params = []) {
-  const { conn } = await getDB();
-  const result = await conn.query(sql, params);
-  return result.toArray().map((r) => r.toJSON());
+  const {conn} = await getDB();
+  let result;
+  if (params.length) {
+    const statement = await conn.prepare(sql);
+    try {
+      result = await statement.query(...params);
+    } finally {
+      await statement.close();
+    }
+  } else {
+    result = await conn.query(sql);
+  }
+  return result.toArray().map(row => Object.fromEntries(
+    result.schema.fields.map(field => [field.name, plainValue(row[field.name], field.type)])
+  ));
 }
 
-/** Fetch the narrative body for a (target_id, axis, section_key). */
-export async function narrative(target_id, axis, section_key) {
+export async function narrative(targetId, axis, sectionKey) {
   const rows = await query(
-    `SELECT body_md, tier FROM narratives
-     WHERE target_id = ? AND axis = ? AND section_key = ?`,
-    [target_id, axis, section_key]
+    "SELECT body_md, tier FROM narratives WHERE target_id = ? AND axis = ? AND section_key = ?",
+    [targetId, axis, sectionKey]
   );
-  return rows[0] ?? { body_md: "_(no narrative yet)_", tier: null };
+  return rows[0] ?? {body_md: "No narrative has been generated for this card.", tier: null};
 }
 
-/** Confidence chip data for a (target_id, axis). */
-export async function axisConfidence(target_id, axis) {
+export async function axisConfidence(targetId, axis) {
   const rows = await query(
-    `SELECT signal_completeness_pct, confidence_class, missing_sources
-     FROM axis_confidence WHERE target_id = ? AND axis = ?`,
-    [target_id, axis]
+    "SELECT signal_completeness_pct, confidence_class, missing_sources FROM axis_confidence WHERE target_id = ? AND axis = ?",
+    [targetId, axis]
   );
-  return rows[0] ?? { signal_completeness_pct: 0, confidence_class: "low", missing_sources: null };
+  return rows[0] ?? {signal_completeness_pct: 0, confidence_class: "low", missing_sources: null};
 }

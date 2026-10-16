@@ -21,17 +21,18 @@ def merge_identity(
     auto_confirm_threshold: float = 0.85,
 ) -> IdentityMergesFile:
     """Merge new identity-merge proposals with an existing file."""
-    blocked = {(e.canonical, e.alias) for e in existing.do_not_merge}
-    by_pair_confirmed = {(e.canonical, e.alias): e for e in existing.confirmed}
+    blocked = {frozenset((e.canonical, e.alias)) for e in existing.do_not_merge}
+    retained = [e for e in existing.confirmed if e.source != "heuristic"]
+    by_pair_confirmed = {(e.canonical, e.alias): e for e in retained}
     by_pair_review = {(e.canonical, e.alias): e for e in existing.needs_review}
 
-    confirmed: list[IdentityMergeEntry] = list(existing.confirmed)
+    confirmed: list[IdentityMergeEntry] = retained
     needs_review: list[IdentityMergeEntry] = []
     seen: set[tuple[str, str]] = set(by_pair_confirmed.keys())
 
     for prop in new_proposals:
         key = (prop.canonical, prop.alias)
-        if key in blocked:
+        if frozenset(key) in blocked:
             continue
         if key in by_pair_confirmed:
             continue
@@ -53,7 +54,7 @@ def merge_identity(
         else:
             needs_review.append(prop)
 
-    # Carry over any review entries that weren't re-proposed (heuristic regressed)
+
     for key, entry in by_pair_review.items():
         if key not in seen:
             needs_review.append(entry)
@@ -72,10 +73,11 @@ def merge_fte(
     auto_confirm_threshold: float = 0.8,
 ) -> FteClassificationFile:
     """Merge new FTE classifications with an existing file (keyed by email)."""
-    by_email_confirmed = {e.email: e for e in existing.confirmed}
+    retained = [e for e in existing.confirmed if e.source != "heuristic"]
+    by_email_confirmed = {e.email: e for e in retained}
     by_email_review = {e.email: e for e in existing.needs_review}
 
-    confirmed: list[FteClassificationEntry] = list(existing.confirmed)
+    confirmed: list[FteClassificationEntry] = retained
     needs_review: list[FteClassificationEntry] = []
     seen: set[str] = set(by_email_confirmed.keys())
 
@@ -114,10 +116,11 @@ def merge_repo(
     auto_confirm_threshold: float = 0.8,
 ) -> RepoClassificationFile:
     """Merge new repo classifications with an existing file (keyed by repo_id)."""
-    by_id_confirmed = {e.repo_id: e for e in existing.confirmed}
+    retained = [e for e in existing.confirmed if e.source != "heuristic"]
+    by_id_confirmed = {e.repo_id: e for e in retained}
     by_id_review = {e.repo_id: e for e in existing.needs_review}
 
-    confirmed: list[RepoClassificationEntry] = list(existing.confirmed)
+    confirmed: list[RepoClassificationEntry] = retained
     needs_review: list[RepoClassificationEntry] = []
     seen: set[str] = set(by_id_confirmed.keys())
 

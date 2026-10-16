@@ -12,13 +12,13 @@ def register_target(
     name: str,
     description: str | None = None,
 ) -> None:
-    """Insert or update a target row. Sets ingested_at on insert; refreshes last_refreshed_at on update."""
+    """Register target metadata without changing its last completed refresh time."""
     existing = conn.execute(
         "SELECT target_id FROM targets WHERE target_id = ?", [target_id]
     ).fetchone()
     if existing:
         conn.execute(
-            "UPDATE targets SET name = ?, description = ?, last_refreshed_at = CURRENT_TIMESTAMP WHERE target_id = ?",
+            "UPDATE targets SET name = ?, description = ? WHERE target_id = ?",
             [name, description, target_id],
         )
     else:

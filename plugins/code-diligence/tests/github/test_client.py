@@ -1,6 +1,4 @@
 """Mock-based tests for the GitHub client. No real API calls."""
-import pytest
-import httpx
 from code_diligence.github.client import GitHubClient, paginate
 
 
@@ -36,5 +34,5 @@ def test_rate_limit_waits(httpx_mock, monkeypatch) -> None:
     httpx_mock.add_response(url="https://api.github.com/test", json={"ok": True})
     client = GitHubClient(token="test")
     client.get("/test")
-    client.get("/test")  # second call should trigger sleep on the prior reset
+    client.get("/test")
     assert any(0 < s <= 10 for s in sleep_calls)

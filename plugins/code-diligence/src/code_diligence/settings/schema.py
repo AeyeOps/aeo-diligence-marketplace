@@ -41,17 +41,12 @@ class Storage(BaseModel):
 
 
 class Dashboard(BaseModel):
-    theme: str = "default"
     output_path: str = "~/data/code-diligence/dashboard/"
 
 
 class Heuristics(BaseModel):
     abandoned_threshold_days: int = 180
-    bus_factor_coverage_pct: int = 50
     fte_inference: bool = True
-    fte_inference_signals: list[str] = Field(
-        default_factory=lambda: ["email_domain", "commit_cadence", "tenure", "repo_breadth"]
-    )
     allow_working_pattern_card: bool = False
 
 

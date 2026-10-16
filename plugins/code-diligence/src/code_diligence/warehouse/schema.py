@@ -9,14 +9,14 @@ import duckdb
 SCHEMA_VERSION = 2
 
 DDL_STATEMENTS: list[str] = [
-    # --- meta ---
+
     """
     CREATE TABLE IF NOT EXISTS schema_version (
       version INTEGER NOT NULL,
       applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
     """,
-    # --- dimensions ---
+
     """
     CREATE TABLE IF NOT EXISTS targets (
       target_id      VARCHAR PRIMARY KEY,
@@ -66,7 +66,7 @@ DDL_STATEMENTS: list[str] = [
       PRIMARY KEY (axis, section_key)
     )
     """,
-    # --- curation tables (loaded from analyst YAML at ingest) ---
+
     """
     CREATE TABLE IF NOT EXISTS identity_map (
       target_id      VARCHAR NOT NULL,
@@ -97,7 +97,7 @@ DDL_STATEMENTS: list[str] = [
       source         VARCHAR NOT NULL
     )
     """,
-    # --- git facts ---
+
     """
     CREATE TABLE IF NOT EXISTS commits_fact (
       repo_id        VARCHAR NOT NULL,
@@ -190,7 +190,7 @@ DDL_STATEMENTS: list[str] = [
       PRIMARY KEY (repo_id, author_email, source)
     )
     """,
-    # --- tool-specific ---
+
     """
     CREATE TABLE IF NOT EXISTS repowise_findings (
       repo_id        VARCHAR NOT NULL,
@@ -201,7 +201,7 @@ DDL_STATEMENTS: list[str] = [
       PRIMARY KEY (repo_id, scope, finding_type)
     )
     """,
-    # --- platform facts (Phase 3) ---
+
     """
     CREATE TABLE IF NOT EXISTS pr_metrics (
       repo_id        VARCHAR NOT NULL,
@@ -249,7 +249,7 @@ DDL_STATEMENTS: list[str] = [
       PRIMARY KEY (repo_id, issue_number)
     )
     """,
-    # --- synthesis ---
+
     """
     CREATE TABLE IF NOT EXISTS narratives (
       target_id      VARCHAR NOT NULL,
@@ -294,7 +294,7 @@ def init_schema(conn: duckdb.DuckDBPyConnection) -> None:
     existing = conn.execute(
         "SELECT COUNT(*) FROM schema_version WHERE version = ?",
         [SCHEMA_VERSION],
-    ).fetchone()[0]
+    ).fetchall()[0][0]
     if existing == 0:
         conn.execute(
             "INSERT INTO schema_version (version) VALUES (?)",

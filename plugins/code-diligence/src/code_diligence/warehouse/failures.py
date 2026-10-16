@@ -3,7 +3,7 @@ from typing import Any, Literal
 
 import duckdb
 
-FailureClass = Literal["crash", "timeout", "parse_error", "data_sanity"]
+FailureClass = Literal["crash", "timeout", "parse_error", "data_sanity", "prereq_missing"]
 
 
 def log_failure(

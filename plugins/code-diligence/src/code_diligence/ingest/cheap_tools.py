@@ -1,10 +1,4 @@
-"""Run the three cheap CLI tools per repo; persist to warehouse.
-
-NOTE: per-tool parallelism within a single repo is deferred because DuckDB is
-not threadsafe for concurrent writes from the same process. The higher-level
-ingest loop runs repos in parallel; per-repo serial cost is acceptable and
-side-steps DuckDB threading concerns.
-"""
+"""Run the three cheap analyzers sequentially, each in its own transaction."""
 from collections.abc import Callable
 from pathlib import Path
 
@@ -22,14 +16,8 @@ def run_cheap_tools_for_repo(
     target_id: str,
     repo_id: str,
     repo_path: Path,
-    max_workers: int = 3,
 ) -> None:
-    """Run git-fame, git-of-theseus, git-truck against repo_path; each isolated.
-
-    The `max_workers` parameter is reserved for future per-tool parallelism;
-    currently the function runs sequentially to avoid DuckDB concurrent-write
-    issues.
-    """
+    """Collect available quick-tier evidence for one repository."""
     def _gf() -> None:
         records = run_git_fame(repo_path)
         persist_git_fame(conn, repo_id=repo_id, records=records)

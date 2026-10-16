@@ -1,63 +1,68 @@
-"""Smoke test: spawn the MCP server as a subprocess and exchange a JSON-RPC list_tools call."""
+"""Exercise warehouse operations over their actual MCP transport."""
 import json
-import os
 import subprocess
-import sys
 from pathlib import Path
 
-import duckdb
-import pytest
+from code_diligence.narration.taxonomy import load_taxonomy_into_warehouse
+from code_diligence.warehouse.connection import open_warehouse
+from code_diligence.warehouse.migrations import migrate
+from code_diligence.warehouse.targets import register_target
+
+MCP_DIR = Path(__file__).parent.parent / "mcp" / "diligence-warehouse"
 
 
-PLUGIN_ROOT = Path(__file__).parent.parent
-MCP_DIR = PLUGIN_ROOT / "mcp" / "diligence-warehouse"
-
-
-@pytest.fixture
-def warehouse(tmp_path: Path) -> Path:
-    db = tmp_path / "t.duckdb"
-    conn = duckdb.connect(str(db))
-    conn.execute("CREATE TABLE narratives (target_id VARCHAR, axis VARCHAR, "
-                 "section_key VARCHAR, body_md VARCHAR, "
-                 "generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                 "generator_version VARCHAR, tier VARCHAR, "
-                 "PRIMARY KEY (target_id, axis, section_key))")
-    conn.execute("CREATE TABLE smoke (x INTEGER)")
-    conn.close()
-    return db
-
-
-def test_mcp_server_lists_tools(warehouse: Path) -> None:
-    """Exchange one initialize + list_tools round-trip with the server over stdio."""
+def test_mcp_operations_over_stdio(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.duckdb"
+    with open_warehouse(warehouse) as conn:
+        migrate(conn)
+        register_target(conn, target_id="acme", name="Acme")
+        load_taxonomy_into_warehouse(conn)
     proc = subprocess.Popen(
-        ["uv", "run", "--directory", str(MCP_DIR), "python", "-m", "server",
-         "--warehouse", str(warehouse)],
+        ["uv", "run", "--directory", str(MCP_DIR), "python", "-m", "server", "--warehouse", str(warehouse)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         text=True,
     )
     try:
-        # Minimal JSON-RPC initialize handshake (MCP protocol)
-        init_req = {
-            "jsonrpc": "2.0", "id": 1, "method": "initialize",
-            "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "0.0.0"}},
-        }
-        proc.stdin.write(json.dumps(init_req) + "\n")
-        proc.stdin.flush()
-        init_resp_line = proc.stdout.readline()
-        assert "result" in init_resp_line, f"unexpected init response: {init_resp_line!r}"
+        assert proc.stdin is not None and proc.stdout is not None
+        request_id = 0
 
-        # initialized notification
+        def request(method: str, params: dict) -> dict:
+            nonlocal request_id
+            request_id += 1
+            proc.stdin.write(json.dumps({"jsonrpc": "2.0", "id": request_id, "method": method, "params": params}) + "\n")
+            proc.stdin.flush()
+            response = json.loads(proc.stdout.readline())
+            assert response["id"] == request_id
+            assert "error" not in response, response
+            return response["result"]
+
+        request("initialize", {
+            "protocolVersion": "2024-11-05", "capabilities": {},
+            "clientInfo": {"name": "integration-check", "version": "1"},
+        })
         proc.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
         proc.stdin.flush()
-
-        # tools/list
-        list_req = {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
-        proc.stdin.write(json.dumps(list_req) + "\n")
-        proc.stdin.flush()
-        list_resp_line = proc.stdout.readline()
-        list_resp = json.loads(list_resp_line)
-        tool_names = {t["name"] for t in list_resp["result"]["tools"]}
-        assert tool_names == {"list_tables", "describe_table", "read_query", "write_narrative"}
+        listed = request("tools/list", {})
+        assert {tool["name"] for tool in listed["tools"]} == {
+            "list_tables", "describe_table", "read_query", "write_narrative",
+        }
+        tables = request("tools/call", {"name": "list_tables", "arguments": {}})
+        assert {row["name"] for row in tables["structuredContent"]["tables"]} >= {"targets", "narratives"}
+        columns = request("tools/call", {"name": "describe_table", "arguments": {"name": "targets"}})
+        assert columns["structuredContent"]["columns"][0]["name"] == "target_id"
+        read = request("tools/call", {
+            "name": "read_query", "arguments": {"sql": "SELECT target_id FROM targets UNION SELECT 'second'"},
+        })
+        assert sorted(read["structuredContent"]["rows"]) == [["acme"], ["second"]]
+        rejected = request("tools/call", {"name": "read_query", "arguments": {"sql": "DELETE FROM targets"}})
+        assert rejected["isError"]
+        written = request("tools/call", {"name": "write_narrative", "arguments": {
+            "target_id": "acme", "axis": "people", "section_key": "bus_factor_map",
+            "body_md": "Ownership data is unavailable.", "tier": "quick",
+        }})
+        assert written["structuredContent"]["ok"]
+        reread = request("tools/call", {"name": "read_query", "arguments": {"sql": "SELECT body_md FROM narratives"}})
+        assert reread["structuredContent"]["rows"] == [["Ownership data is unavailable."]]
     finally:
         proc.terminate()
         proc.wait(timeout=5)

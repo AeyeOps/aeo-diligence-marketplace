@@ -9,12 +9,9 @@ const axes = ["people", "product", "process"];
 const confidences = Object.fromEntries(
   await Promise.all(axes.map(async a => [a, await axisConfidence(target_id, a)]))
 );
-const review_counts = await query(`
-  SELECT 'identity' AS k, 0 AS n  -- placeholder; real count comes from curation YAML reader, not warehouse
-`);
 ```
 
-**${target.name}** — last refreshed ${target.last_refreshed_at?.toString().slice(0,16) ?? "never"}
+**${target.name}** — last refreshed ${target.last_refreshed_at ? new Date(target.last_refreshed_at).toLocaleString() : null ?? "never"}
 
 ${target.description ?? ""}
 
@@ -30,9 +27,10 @@ display(html`<div style="display:flex; gap:1rem;">
 </div>`);
 ```
 
-## Axes
+## Explore the evidence
 
-- [People](people) — bus factor, ownership, attrition
-- [Product](product) — hotspots, coupling, code aging
-- [Process](process) — DORA, review discipline, CI health
-- [Repos](repos) — full inventory
+```js
+display(html`<nav aria-label="Target sections"><ul>${["people", "product", "process", "repos", "curation", "health"].map(section => html`<li><a href="${target_id}/${section}.html">${section[0].toUpperCase() + section.slice(1)}</a></li>`)}</ul></nav>`);
+```
+
+[All targets](/index.html)

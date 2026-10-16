@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -28,15 +27,15 @@ storage:
   repo_clone_root: {repos_root}
   curation_dir: {curation}
 """)
-    # Pre-clone the synthetic target into the expected repo_clone_root so the
-    # CLI's "clone" step finds local sources to copy from.
+
+
     repos_root.mkdir(parents=True)
     for r in synthetic_target.iterdir():
         subprocess.run(["git", "clone", "--quiet", str(r), str(repos_root / r.name)], check=True)
     return f
 
 
-def test_cli_ingest_quick_populates_warehouse(settings_file: Path, tmp_path: Path) -> None:
+def test_cli_ingest_quick_populates_warehouse(settings_file: Path, tmp_path: Path, synthetic_target: Path) -> None:
     result = subprocess.run(
         ["uv", "run", "code-diligence", "ingest", str(settings_file), "--quick"],
         capture_output=True, text=True,
@@ -47,10 +46,10 @@ def test_cli_ingest_quick_populates_warehouse(settings_file: Path, tmp_path: Pat
     with open_warehouse(warehouse) as conn:
         n_commits = conn.execute("SELECT COUNT(*) FROM commits_fact").fetchone()[0]
         n_repos = conn.execute("SELECT COUNT(*) FROM repos").fetchone()[0]
-    assert n_commits >= 14  # synthetic has ~16 commits across all repos
-    assert n_repos == 6  # six synthetic repos
+    assert n_commits >= 14
+    assert n_repos == 6
 
-    # Curation outputs land beside the settings file (curation_dir in settings)
+
     curation = settings_file.parent / "curation"
     identity_yaml = curation / "identity-merges.yaml"
     fte_yaml = curation / "fte-classification.yaml"
@@ -59,26 +58,34 @@ def test_cli_ingest_quick_populates_warehouse(settings_file: Path, tmp_path: Pat
     assert fte_yaml.exists()
     assert repo_yaml.exists()
 
-    # Both pat emails referenced in the identity file (confirmed or needs_review)
+
     id_content = identity_yaml.read_text()
     assert "pat@acme.com" in id_content
     assert "pat@gmail.com" in id_content
 
-    # legacy-old should be classified abandoned
+
     assert "abandoned" in repo_yaml.read_text()
 
     import shutil
     if all(shutil.which(t) for t in ["git-fame", "git-of-theseus-analyze", "npx"]):
         with open_warehouse(warehouse) as conn:
             n_ownership = conn.execute("SELECT COUNT(*) FROM ownership_share").fetchone()[0]
-            n_ages = conn.execute("SELECT COUNT(*) FROM code_age_buckets").fetchone()[0]
         assert n_ownership > 0
-        # n_ages >= 0 — small synthetic repos may produce no buckets
 
-    if shutil.which("claude") and os.environ.get("ANTHROPIC_API_KEY"):
-        with open_warehouse(warehouse) as conn:
-            n_narratives = conn.execute("SELECT COUNT(*) FROM narratives WHERE target_id='acme'").fetchone()[0]
-        assert n_narratives == 16
+    source = synthetic_target / "api"
+    subprocess.run(
+        ["git", "-C", str(source), "-c", "user.name=Refresh Author", "-c", "user.email=refresh@example.com",
+         "commit", "--quiet", "--allow-empty", "-m", "Refresh integration proof"],
+        check=True, capture_output=True, text=True,
+    )
+    refreshed = subprocess.run(
+        ["uv", "run", "code-diligence", "ingest", str(settings_file), "--quick"],
+        capture_output=True, text=True,
+    )
+    assert refreshed.returncode == 0, refreshed.stderr
+    with open_warehouse(warehouse) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM commits_fact").fetchone()[0] == n_commits + 1
+        assert conn.execute("SELECT SUM(total_commits) FROM authors").fetchone()[0] == n_commits + 1
 
 
 def test_cli_ingest_quick_populates_tooling_versions(

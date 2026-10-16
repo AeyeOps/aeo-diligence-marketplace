@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="code-diligence — PE-grade technical due diligence in under 30 minutes" width="100%"/>
+  <img src="docs/assets/banner.svg" alt="code-diligence — PE-grade technical due diligence from repository evidence" width="100%"/>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"/></a>
-  <a href=".claude-plugin/plugin.json"><img alt="Version" src="https://img.shields.io/badge/version-1.1.0-green.svg"/></a>
+  <a href=".claude-plugin/plugin.json"><img alt="Version" src="https://img.shields.io/badge/version-1.1.2-green.svg"/></a>
   <a href="https://claude.com/claude-code"><img alt="Runs in Claude Code" src="https://img.shields.io/badge/runs%20in-Claude%20Code-d4a574.svg"/></a>
 </p>
 
 ---
 
-> **The deal team has 30 minutes before the next partner call. The target owns 280 git repos. You need to know who carries bus-factor risk, where the hotspots are, what looks abandoned, and whether engineering hygiene is a problem.**
+> **The deal team needs a grounded view of a target's repositories. You need to know who carries bus-factor risk, where the hotspots are, what looks abandoned, and whether engineering hygiene is a problem.**
 >
 > `code-diligence` answers those questions in one command.
 
@@ -21,22 +21,22 @@ One **Observable dashboard** per target, covering **16 cards** across three dili
 | Axis | Cards |
 |---|---|
 | **People** | bus-factor map · knowledge concentration · contributor activity timeline · communication graph · hero-dependency register |
-| **Product** | hotspot map · hidden coupling · code-aging chart · burndown over time · abandoned-area register · tech-stack drift |
-| **Process** | DORA quadrant · review discipline · CI health · issue-triage health · working-pattern signals *(privacy-gated, off by default)* |
+| **Product** | hotspot map · hidden coupling · code-aging chart · burndown over time · abandoned-area register · language inventory |
+| **Process** | Repository delivery indicators · review discipline · CI health · issue-triage health · working-pattern signals *(privacy-gated, off by default)* |
 
-Each card has narrated prose telling you what to notice. A read-only chat agent answers follow-up questions ("why is the payments-service a hotspot?") with citations back to the warehouse and the repo.
+With the target's warehouse MCP connected, the native narrator adds evidence-grounded prose to each card. A read-only chat agent answers follow-up questions ("why is the payments-service a hotspot?") with citations back to the warehouse and the repo.
 
 ## The entire workflow
 
 ```text
-analyst:  /code-diligence:ingest acme --quick
-plugin:   [20-30 min · ~280 repos processed · dashboard ready]
+analyst:  /code-diligence:ingesting-target acme --quick
+plugin:   [Sources ingested · available tool results and missing inputs recorded]
 
-analyst:  /code-diligence:ask acme why is the payments-service a hotspot?
-plugin:   [Cites specific commits, contributors, and complexity scores
+analyst:  /code-diligence:asking-diligence acme why is the payments-service a hotspot?
+plugin:   [Cites specific commits, contributors, and measured change counts
            from the warehouse — read-only, evidence-anchored.]
 
-analyst:  /code-diligence:refresh acme    # before the next deal stage
+analyst:  /code-diligence:refreshing-target acme    # before the next deal stage
 plugin:   [Incremental fetch + full-tier rerun · analyst-confirmed
            curations preserved.]
 ```
@@ -47,11 +47,11 @@ That is the whole interaction. No notebooks, no SQL, no exports.
 
 |  |  |
 |---|---|
-| **Time to first dashboard** | ⏱ under 30 minutes (quick tier, ~280 repos) |
-| **Full diligence run** | 🔍 1–3 hours (adds hercules, code-maat, repowise, GitHub platform pass) |
+| **Quick tier** | Git history plus available lightweight analysis tools |
+| **Full tier** | Adds available deep analyzers and enabled GitHub platform data |
 | **Reproducibility** | 🔁 idempotent pipeline; analyst-confirmed curations survive every rerun |
-| **Privacy posture** | 🔒 per-person commit-time heatmaps are off until you explicitly opt in |
-| **Cost model** | 💰 runs entirely on your machine; no SaaS, no third-party data egress |
+| **Privacy posture** | 🔒 repository commit-time heatmaps are off until you explicitly opt in |
+| **Processing** | Git analysis runs locally; optional narration sends selected evidence to your configured model provider |
 | **License** | 📄 MIT |
 
 ## Standing on giants
@@ -72,7 +72,7 @@ Each tool retains its own license; see each repository. The user experience is m
 
 ## Install
 
-Skills are portable across modern agentic clients. Pick yours — one line each:
+The packaged installation targets Claude Code; individual skills can also be installed in other runtimes.
 
 ### Claude Code — full pipeline
 ```sh
@@ -81,45 +81,44 @@ claude plugin install code-diligence@aeo-diligence
 ```
 Commands, hooks, MCP, and the Observable dashboard. The recommended path.
 
-### Codex CLI — analysis skills
-Inside a Codex session, type:
-```text
-$skill-installer AeyeOps/aeo-diligence-marketplace
-```
-Installs the People / Product / Process diligence-axis skills into `~/.codex/skills/`. See the [Codex skills docs](https://developers.openai.com/codex/skills).
+### Other runtimes
 
-### Gemini CLI — extension
-```sh
-gemini extensions install https://github.com/AeyeOps/aeo-diligence-marketplace
-```
-Discoverable in the [Gemini CLI extensions](https://geminicli.com/docs/extensions/) marketplace.
+The skills are readable outside Claude Code, but this repository packages a Claude Code plugin. Codex can install individual skill directories under `plugins/code-diligence/skills/` with its skill installer. The operational skills also require a shell, the Python project, and a configured warehouse MCP; installing skill text alone does not install those components. No Gemini extension manifest is included.
 
 ## Configure your first target
 
-> Paths below show the Claude Code layout. Codex / Gemini installs adjust to their own plugin paths.
+> Resolve the installed plugin root from `CLAUDE_PLUGIN_ROOT` inside Claude Code; plugin cache paths vary by installation.
 
 Copy the example settings, point it at the GitHub orgs you want to diligence, and set the env var that holds your PAT:
 
 ```sh
-cp ~/.claude/plugins/code-diligence/settings/diligence.example.local.md \
+cp "$CLAUDE_PLUGIN_ROOT/settings/diligence.example.local.md" \
    ~/.claude/code-diligence-<target>.local.md
 export ACME_DILIGENCE_GH_TOKEN=ghp_...
 ```
 
-Run the ingest:
+The settings file selects GitHub organizations or an existing local clone directory. Run the ingest:
 
 ```text
-/code-diligence:ingest acme --quick
+/code-diligence:ingesting-target acme --quick
 ```
 
-When it finishes, open the dashboard:
+To enable the asker and narrator, start the session with the target warehouse selected:
+
+```sh
+export DILIGENCE_WAREHOUSE_PATH=~/data/code-diligence/acme.duckdb
+```
+
+For a newly created warehouse, reconnect the plugin MCP or start a new session after ingest. Exporting a variable in a child shell does not retarget an already running server.
+
+The ingest skill then builds the dashboard. Open its configured output with:
 
 ```sh
 python -m http.server -d ~/data/code-diligence/dashboard
 # → http://localhost:8000
 ```
 
-> **Optional analysis tools** (`git-fame`, `git-of-theseus`, `hercules`, `code-maat`, `repowise`) unlock additional cards. The pipeline detects what's installed and gracefully skips the rest — missing tools become "data unavailable" on the affected cards, never a failure. Install whatever subset matches the depth you need.
+> **Optional analysis tools** (`git-fame`, `git-of-theseus`, `hercules`, `code-maat`, `repowise`) unlock additional cards. The pipeline detects what's installed and gracefully skips the rest — missing tools are recorded as failures on Health while the other analyses continue. Install whatever subset matches the depth you need.
 >
 > Full optional-tool install commands: [Installing the optional analysis tools](#installing-the-optional-analysis-tools) below.
 
@@ -129,9 +128,9 @@ If you're new to diligence-grade code analysis, the per-axis explainers are the 
 
 - 👥 [**People axis**](skills/understanding-pe-diligence-axes/references/people.md) — bus factor, knowledge concentration, hero dependencies
 - 🧱 [**Product axis**](skills/understanding-pe-diligence-axes/references/product.md) — hotspots, coupling, code aging, abandoned areas
-- ⚙️ [**Process axis**](skills/understanding-pe-diligence-axes/references/process.md) — DORA, review discipline, CI health
+- ⚙️ [**Process axis**](skills/understanding-pe-diligence-axes/references/process.md) — delivery indicators, review discipline, CI health
 
-When a card shows "low confidence," it means the underlying source data was incomplete — usually because an optional tool wasn't installed or the GitHub token lacked scope. The dashboard's Health tab tells you exactly which.
+When a card shows "low confidence," it means the underlying source data was incomplete — usually because an optional tool wasn't installed or the GitHub token lacked scope. The dashboard's Health page tells you exactly which.
 
 ## License
 
@@ -146,11 +145,12 @@ The plugin runs without any of these. Each adds capability — install whatever 
 
 ```sh
 brew install uv node openjdk@17 go
-uv tool install git-fame git-of-theseus
+uv tool install git-fame
+uv tool install git-of-theseus
 go install github.com/src-d/hercules/cmd/hercules@latest
 
 # code-maat JAR (one-time vendor)
-cd ~/.claude/plugins/code-diligence/vendor
+cd "$CLAUDE_PLUGIN_ROOT/vendor"
 curl -LO https://github.com/adamtornhill/code-maat/releases/download/<version>/code-maat-<version>-standalone.jar
 ```
 
@@ -166,10 +166,11 @@ Which tool feeds which card: [`skills/ingesting-target/references/tool-prerequis
 This is shipped as a ready-to-use plugin, not an open contribution surface — there is no contribution guide and no roadmap solicitation. That said, if you want to fork, change, or extend it locally:
 
 ```sh
-uv sync
-uv run pytest      # ~140 tests, ~3 min
+uv sync --all-packages
+uv run pytest
+uv run --directory mcp/diligence-warehouse pytest
 uv run ruff check .
-uv run pyright
+uv run pyright src/ mcp/diligence-warehouse/server.py
 ```
 
 Tests for individual external tools skip cleanly when the binary is absent, so the suite is green even on a bare Mac.
@@ -177,8 +178,8 @@ Tests for individual external tools skip cleanly when the binary is absent, so t
 **Internals deeper than the README goes:**
 
 - [Per-tool wrapper notes](skills/interpreting-tool-output/SKILL.md) — what each tool does and which warehouse column it populates
-- [Pipeline stages](skills/ingesting-target/references/pipeline-stages.md) — the 10 stages of `code-diligence ingest`
-- [Privacy gate decision matrix](skills/building-dashboard/references/privacy-gate.md) — the working-pattern card opt-in
+- [Pipeline stages](skills/ingesting-target/references/pipeline-stages.md) — ingest stages and the subsequent narration/build steps
+- [Working-pattern display setting](skills/building-dashboard/references/privacy-gate.md) — the working-pattern card opt-in
 - [Changelog](CHANGELOG.md) — what changed in each release
 
 </details>

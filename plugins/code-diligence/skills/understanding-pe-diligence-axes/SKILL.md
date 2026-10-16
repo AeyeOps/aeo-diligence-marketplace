@@ -5,9 +5,9 @@ description: Reference for the People / Product / Process taxonomy, card-to-tabl
 
 code-diligence organizes findings along three axes. Pick the per-axis reference for the card-to-table map; come back here for the cross-axis narration rules.
 
-- `references/people.md` — 5 cards, primarily git-derived (bus factor, knowledge concentration, contributor activity, communication graph, hero register)
-- `references/product.md` — 6 cards, code-derived (hotspots, hidden coupling, code aging, burndown, abandoned areas, tech-stack drift)
-- `references/process.md` — 5 cards, GitHub-platform-dependent (DORA, review discipline, CI health, issue triage, working-pattern signals)
+- [people](references/people.md) — 5 cards, primarily git-derived (bus factor, knowledge concentration, contributor activity, communication graph, hero register)
+- [product](references/product.md) — 6 cards, code-derived (hotspots, hidden coupling, code aging, burndown, abandoned areas, language inventory)
+- [process](references/process.md) — 5 cards, GitHub-platform-dependent (delivery indicators, review discipline, CI health, issue triage, working-pattern signals)
 
 ## Narration contract
 
@@ -24,14 +24,16 @@ The `axis_confidence` row's `confidence_class` is `high`, `medium`, or `low` bas
 
 | Range | Class | Means |
 |---|---|---|
-| ≥ 80% | high | Every primary source for this axis populated the warehouse |
-| 50–79% | medium | At least one secondary source missing; cards render with caveats |
-| < 50% | low | Primary source missing or unusable; the axis is mostly empty |
+| ≥ 80% | high | At least 80% of expected tables have rows |
+| 40–79% | medium | 40–79% of expected tables have rows |
+| < 40% | low | Fewer than 40% of expected tables have rows |
 
-Each axis has its own primary/secondary source list — see the per-axis references.
+This is a table-presence score, not repository coverage, result accuracy, or agreement between tools. Expected tables are defined in `src/code_diligence/narration/confidence.py`; inspect Health for missing inputs.
 
 ## Source-of-truth links
 
-- Card-to-table-to-narrative mapping per axis: `references/people.md`, `references/product.md`, `references/process.md`
+- Card-to-table-to-narrative mapping per axis: [people](references/people.md), [product](references/product.md), [process](references/process.md)
 - Tool-to-table mapping (what each wrapped tool populates): `skills/interpreting-tool-output/SKILL.md`
 - Canonical taxonomy seeded into the warehouse at ingest: `axes_taxonomy` table, loaded from `src/code_diligence/narration/taxonomy.py`
+
+Update the owning axis reference when a real query shows that a card or source mapping has changed.

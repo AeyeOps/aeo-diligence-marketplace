@@ -5,8 +5,10 @@ We parse the latest snapshot, bucket by vintage year, and persist to
 `code_age_buckets`.
 """
 import json
+import re
 import subprocess
 import tempfile
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -40,23 +42,18 @@ def run_git_of_theseus(repo: Path) -> list[CodeAgeBucket]:
 
 
 def parse_cohorts_json(payload: dict[str, Any]) -> list[CodeAgeBucket]:
-    """Take the latest snapshot from a cohorts.json payload; bucket by year.
-
-    cohorts.json shape: {"y": [[loc_per_cohort_at_t0], ...], "ts": [...], "labels": ["cohort1", ...]}
-    """
-    if not payload.get("y"):
+    """Aggregate the last sample of each upstream cohort series by year."""
+    series = payload.get("y", [])
+    if not series:
         return []
-    latest = payload["y"][-1]
-    labels = payload.get("labels", [])
-    out: list[CodeAgeBucket] = []
-    for label, loc in zip(labels, latest, strict=False):
-        # Labels are typically year-month or year strings; normalize to year
-        try:
-            year = int(str(label)[:4])
-        except ValueError:
-            continue
-        out.append(CodeAgeBucket(bucket_start_year=year, surviving_loc=int(loc)))
-    return out
+    totals: dict[int, int] = defaultdict(int)
+    for label, values in zip(payload["labels"], series, strict=True):
+        match = re.fullmatch(r"Code added in (\d{4})", label)
+        if match is None:
+            raise ValueError(f"unexpected git-of-theseus cohort label: {label!r}")
+        if values:
+            totals[int(match[1])] += int(values[-1])
+    return [CodeAgeBucket(year, total) for year, total in sorted(totals.items())]
 
 
 def persist_git_of_theseus(

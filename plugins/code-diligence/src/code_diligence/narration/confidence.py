@@ -20,7 +20,7 @@ def compute_axis_confidence(conn: duckdb.DuckDBPyConnection, *, target_id: str) 
 
 
 def _compute_for_axis(conn, target_id, axis):
-    # Each axis has a list of "expected populated tables"; missing ones penalize completeness
+
     expected = {
         "people": ["commits_fact", "ownership_share", "contributor_classification"],
         "product": ["file_metrics", "coupling_pairs", "code_age_buckets", "burndown_series"],
@@ -30,7 +30,7 @@ def _compute_for_axis(conn, target_id, axis):
     for table in expected:
         if table == "contributor_classification":
             n = conn.execute(
-                f"SELECT COUNT(*) FROM contributor_classification WHERE target_id = ?",
+                "SELECT COUNT(*) FROM contributor_classification WHERE target_id = ?",
                 [target_id],
             ).fetchone()[0]
         else:

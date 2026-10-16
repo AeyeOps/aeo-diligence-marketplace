@@ -6,7 +6,7 @@ src-d's git-history analyzer. Emits per-tick per-vintage surviving-LOC matrices 
 
 | hercules output | Warehouse table | Notes |
 |---|---|---|
-| `Burndown.project.matrix` | `burndown_series (repo_id, snapshot_at, vintage_year, surviving_loc)` | Canonical for the Product `burndown_over_time` card |
+| `Burndown.project` | `burndown_series (repo_id, snapshot_at, vintage_year, surviving_loc)` | Canonical for the Product `burndown_over_time` card |
 
 Coupling and dev-edge outputs from hercules are not persisted — code-maat is canonical for `coupling_pairs`, and the walker is canonical for `commit_file_authors`.
 
@@ -14,11 +14,11 @@ Coupling and dev-edge outputs from hercules are not persisted — code-maat is c
 
 The wrapper shells out to:
 
-    hercules --burndown --burndown-people --yaml <repo>
+    hercules --burndown --burndown-people <repo>
 
 - `--burndown` enables the burndown analysis.
 - `--burndown-people` adds per-author burndown alongside the project matrix.
-- `--yaml` forces YAML output on stdout; the wrapper parses it with `yaml.safe_load`.
+- YAML is the default output format; the wrapper parses it with `yaml.safe_load`.
 - Timeout: 600s. On non-zero exit it raises `HerculesError`; the `isolated()` envelope in the pipeline converts that to a `tool_failures` row of class `runtime` and the repo moves on.
 
 The wrapper pins to `HERCULES_VERSION = "10.7.2"` for documentation purposes; the binary on PATH must be a compatible release.
@@ -34,7 +34,8 @@ Use git-of-theseus for the static "how old is the code now" chart and hercules f
 
 ## Persistence shape
 
-`persist_burndown` reads `Burndown.project.matrix` (a list-of-lists indexed `[tick_idx][vintage_idx]`) plus the project's `granularity` and `sampling` (days-per-tick) values, and emits one row per non-zero `(tick, vintage)` cell. Zeros are skipped to keep the table sparse. Existing `burndown_series` rows for the repo are deleted first — the wrapper is idempotent on re-run.
+`persist_burndown` reads the multiline numeric matrix in `Burndown.project`. Rows are vintage bands and columns are samples. `Burndown.granularity`, `sampling`, and `tick_size` map bands and samples from `hercules.begin_unix_time` to dates. Values are aggregated to one row per snapshot and vintage year; zero values are omitted. Existing rows for the repository are replaced.
+
 
 ## Caveats
 

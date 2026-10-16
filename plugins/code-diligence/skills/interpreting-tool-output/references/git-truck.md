@@ -12,7 +12,7 @@
 
 The wrapper performs six ordered steps:
 
-1. **Spawn** `npx -y git-truck@3.3.0 --headless` with `cwd=<realpath(repo)>` and `start_new_session=True` so it owns its process group. The positional repo argv is ignored by v3; the server uses `process.cwd()`.
+1. **Spawn** `npx -y git-truck@3.3.0 --headless` with `cwd=<realpath(repo)>`, a fresh temporary cache directory, and `start_new_session=True` so it owns its process group. The positional repo argv is ignored by v3; the server uses `process.cwd()`.
 2. **Drain stdout** to find the Express listening port via the `http://localhost:NNNNN` regex. Timeout: 120s. If the process exits before printing a port, raise `GitTruckError` with the log tail.
 3. **Kick `/view`** on a daemon thread (`_kick_view`) — `viewMiddleware` loads the analysis lazily and React Router v7 aborts the loader when the client disconnects, so we keep the request open with a long timeout while the main thread polls for completion.
 4. **Poll `$TMPDIR/git-truck-cache/metadata.json`** until `completions["<absRepoPath>---<branch>"]` appears. Timeout: 180s. `absRepoPath` uses `os.path.realpath` because macOS resolves a subprocess's `cwd` through `/private/var/folders/...`, and git-truck stores the completion key under the resolved form — without the realpath, polling never finds the key.
@@ -34,10 +34,10 @@ git-truck reports contributor **names** but not emails. `persist_git_truck` synt
 - **Name-keyed.** Two committers with the same display name on different machines collapse into one row.
 - **Insertions + deletions, not surviving LOC.** The dominant-author SQL sums `insertions + deletions`, which is contribution volume — not blame-derived surviving lines. git-fame gives the surviving-blame answer.
 
-Disagreements with git-fame surface on the Health tab; the dashboard always treats git-fame as canonical.
+Compare these rows explicitly with git-fame only after accounting for their different units and identity keys. The dashboard uses git-fame for surviving LOC ownership.
 
 ## Prerequisites
 
-- `node` and `npx` on PATH. Node 20+ recommended.
+- `node` and `npx` on PATH. The pinned git-truck release requires Node 22+.
 - First run downloads `git-truck@3.3.0` via npx; subsequent runs reuse the npx cache.
 - `$TMPDIR` must be writable — that's where the analysis cache lives.

@@ -12,7 +12,6 @@ Lives at: `skills/building-dashboard/templates/observable/` (relative to plugin 
     └── src/
         ├── about.md
         ├── compare.md             # cross-target compare page (page template, not a separate skill)
-        ├── curation.md            # per-target curation status (page template, not a separate skill)
         ├── index.md               # portfolio landing
         ├── data/
         │   ├── curation-counts.txt.js   # data loader: reads YAML from DILIGENCE_CURATION_DIR
@@ -24,13 +23,14 @@ Lives at: `skills/building-dashboard/templates/observable/` (relative to plugin 
                 ├── product.md
                 ├── process.md
                 ├── curation.md
-                └── compare.md
+                ├── repos.md
+                └── health.md
 
 ## Build-time generated (gitignored)
 
-    src/data/warehouse.duckdb      # written by render.py from --warehouse
-    src/data/config.json           # written by render.py with {allow_working_pattern_card: bool}
-    node_modules/                  # npm install
+    src/data/warehouse.duckdb      # copied by render.py into its temporary project
+    src/data/config.json           # written in the temporary project with targets and the privacy flag
+    node_modules/                  # npm ci
     dist/                          # observable build output, copied to --output
 
 ## What `src/data/warehouse.js` exposes
@@ -45,7 +45,7 @@ Every page template (people.md, product.md, process.md, etc.) imports from this 
 
 A single shape:
 
-    {"allow_working_pattern_card": true|false}
+    {"allow_working_pattern_card": true|false, "targets": ["target-id"]}
 
 Read via `FileAttachment("../../data/config.json").json()` in `targets/[target]/process.md`. See `references/privacy-gate.md` for who writes it and when.
 

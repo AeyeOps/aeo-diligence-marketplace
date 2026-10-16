@@ -2,20 +2,11 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "mcp__plugin_code-diligence_diligence-warehouse__write_narrative",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/rebuild_dashboard.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__diligence-warehouse__write_narrative",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/rebuild_dashboard.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/rebuild_dashboard.sh\""
           }
         ]
       }
@@ -25,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session_start.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/session_start.sh\""
           }
         ]
       }

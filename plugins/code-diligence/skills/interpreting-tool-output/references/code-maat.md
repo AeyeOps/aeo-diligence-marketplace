@@ -17,7 +17,7 @@ Two-step shell flow per repo:
 
 1. **Build the log dump** via raw `git log` (not pygit2):
 
-       git -C <repo> log --all --numstat --date=short --no-renames \
+       git -C <repo> log --numstat --date=short --no-renames \
            --pretty=format:--%h--%ad--%aN
 
    `build_log_dump` writes the captured stdout to a temporary file. Timeout: 300s.
@@ -32,8 +32,8 @@ Two-step shell flow per repo:
 ## Persistence shape
 
 - **`persist_revisions`** parses `entity,n-revs` CSV and issues per-file `UPDATE file_metrics SET revisions = ?` — it assumes the walker has already inserted the row, so missing rows are silently no-ops.
-- **`persist_coupling`** parses `entity,coupled,degree,average-revs`, deletes prior `coupling_pairs` rows for `(repo_id, source='code-maat')`, and inserts new ones with a placeholder `support_pct = degree/100` and `lift = 1.0`. These placeholders are recorded honestly — the Health tab surfaces them as low-confidence values when compared against hercules.
-- **`persist_entity_ownership`** parses `entity,author,added,added-pct`, aggregates to the top author per file, and `UPDATE`s `file_metrics.top_owner_email` / `top_owner_pct`. Note the `author` column from code-maat is a display name, not an email — see "Author normalization" below.
+- **`persist_coupling`** uses the pairs from code-maat and computes co-change count, support (shared commits / repository commits), and lift from the walker's commit/file facts. Rows replace the prior code-maat coupling snapshot. No synthetic support or lift is inserted.
+- **`persist_entity_ownership`** parses `entity,author,added,deleted`, calculates each author's share of total additions, and selects the top author per file, and `UPDATE`s `file_metrics.top_owner_email` / `top_owner_pct`. Note the `author` column from code-maat is a display name, not an email — see "Author normalization" below.
 
 ## Quirks
 
@@ -44,6 +44,8 @@ Two-step shell flow per repo:
 
 ## When to trust it
 
-- **Hidden coupling** — yes, canonical. Cross-check with hercules when available.
+- **Hidden coupling** — yes, canonical. The current hercules adapter does not persist coupling.
 - **Ownership** — directional. Trust git-fame for the email-keyed answer.
 - **Revisions** — equivalent to the walker; either source is fine, but the walker's value is what stage 3 wrote.
+
+Upstream output columns are defined in [churn.clj](https://github.com/adamtornhill/code-maat/blob/master/src/code_maat/analysis/churn.clj).

@@ -25,24 +25,17 @@ sees only the 6 descriptions from our system prompt.
 ## Run
 
 ```sh
-# Single run (Haiku 4.5 by default — cheap, ~1 API call total)
-~/.venvs/agent/bin/python run_eval.py
+# Run from the plugin root using its project dependencies
+uv run python scripts/skill_eval/run_eval.py
 
 # Dump the prompt that would be sent, without calling the API
-~/.venvs/agent/bin/python run_eval.py --dump-prompt
+uv run python scripts/skill_eval/run_eval.py --dump-prompt
 
 # Use a stronger judge model
-~/.venvs/agent/bin/python run_eval.py --model claude-sonnet-4-6
+uv run python scripts/skill_eval/run_eval.py --model claude-sonnet-4-6
 ```
 
-## Stability
-
-Haiku has ~±1-case-per-run noise on this bank. For a defensible result,
-run 5 times and report aggregate accuracy:
-
-```sh
-for i in 1 2 3 4 5; do ~/.venvs/agent/bin/python run_eval.py | tail -8; done
-```
+Run results describe one routing sample; they are not a deterministic skill acceptance test.
 
 ## Adding a case
 
@@ -61,17 +54,5 @@ counts them in precision but not recall.
 ## Files
 
 - [`run_eval.py`](run_eval.py) — harness
-- [`cases.yaml`](cases.yaml) — test bank (21 happy-path + 10 adversarial)
-- [`review.md`](review.md) — claude-code-guide review that drove the
-  adversarial cases and description tightening
+- [`cases.yaml`](cases.yaml) — test bank
 - `results.json` / `results.md` — gitignored, regenerated each run
-
-## Track record
-
-Initial happy-path (21 cases): 21/21, avg confidence 96.7%.
-After adding 10 adversarial cases: 29/31 baseline.
-After three description tightenings (`interpreting-tool-output`,
-`understanding-pe-diligence-axes`, `refreshing-target`,
-`asking-diligence`, `ingesting-target`): 5/5 perfect runs at 31/31.
-
-See `review.md` for the boundary-risk analysis driving the tightening.

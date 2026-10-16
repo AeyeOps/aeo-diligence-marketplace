@@ -1,24 +1,24 @@
 ---
 name: ingesting-target
-description: Initial setup for a new code-diligence target — clone repos, walk git history, run the tool wrappers, populate the warehouse, and generate curation YAMLs. Use when the user invokes /code-diligence:ingest, or sets up code-diligence on a target for the first time (no warehouse exists yet). For already-ingested targets that need new commits picked up, use refreshing-target.
-argument-hint: <target> [--quick | --full]
-allowed-tools: Bash, Read
+description: Set up a new code-diligence target or ingest its repositories for the first time. For a target that already has a warehouse, use refreshing-target.
+allowed-tools: Bash, Read, Agent
 ---
 
-The user has invoked `/code-diligence:ingest <target> [--quick|--full]`.
+# Ingest a diligence target
 
-1. Resolve `<target>` to a settings file at `~/.claude/code-diligence-<target>.local.md`. If it does not exist, tell the user to copy the template at `settings/diligence.example.local.md` (path relative to the plugin root) and edit it; do not proceed.
-2. If neither `--quick` nor `--full` was passed, ask which tier and explain the trade-off in one sentence each:
-   - **--quick** (<30 min for ~280 repos) — git walker + cheap tools (git-fame, git-of-theseus, git-truck); Process axis confidence will be low because expensive tools and the GitHub platform pass are skipped.
-   - **--full** (1–3 hours) — adds hercules, code-maat, repowise, and the GitHub platform pass (PRs, Actions, releases, issues).
-3. Run:
+Run the requested tier, preserve analyst curations, and finish with a dashboard the user can open. In Claude Code this skill is `/code-diligence:ingesting-target`; in Codex it is `$ingesting-target`.
 
-       uv run --directory ${CLAUDE_PLUGIN_ROOT} code-diligence ingest <settings-path> --<tier>
+1. Read `~/.claude/code-diligence-<target>.local.md`. If it is missing, create it from [the settings template](../../settings/diligence.example.local.md) using the target and sources the user supplied. Ask only for required source or storage choices that are still unknown. Keep credentials in the named environment variable.
+2. If the user has not chosen a tier, ask whether they want quick (git history and available lightweight tools) or full (also the available deep analyzers and enabled GitHub data). Runtime depends on repository size and installed tools.
+3. Resolve the plugin root from `CLAUDE_PLUGIN_ROOT` in Claude Code or this skill's directory in another runtime, then run:
 
-4. After the CLI exits successfully, surface from its stdout:
-   - The path where the three curation YAMLs were written (`storage.curation_dir`)
-   - The count of "needs review" entries in each YAML — partners triage those before viewing the dashboard
-5. If the CLI exits non-zero, surface stderr verbatim. Do not paraphrase tool errors — wrappers already log `tool_failures` rows for non-fatal cases.
+   ```sh
+   uv run --directory "$PLUGIN_ROOT" code-diligence ingest "$SETTINGS_PATH" --quick
+   ```
 
-What gets populated and in what order: `references/pipeline-stages.md`.
-Required external binaries and the skip behavior when they're missing: `references/tool-prerequisites.md`.
+   Substitute `--full` when requested. GitHub-enabled targets discover and clone the configured organizations. Local targets read existing checkouts under `storage.repo_clone_root`.
+4. Inspect the CLI result, curation paths and review counts. A nonzero exit is a failed ingest; report the actual error. Tool failures recorded in the warehouse remain visible on Health.
+5. If this session's warehouse MCP is connected to the target, use the runtime's native subagent tool to invoke `diligence-narrator` for each card in `axes_taxonomy`, passing target ID, warehouse path, axis, section key and tier. Supply `metric_context` from the matching [People](../understanding-pe-diligence-axes/references/people.md), [Product](../understanding-pe-diligence-axes/references/product.md), or [Process](../understanding-pe-diligence-axes/references/process.md) reference and that card's SQL in the [dashboard templates](../building-dashboard/templates/observable/src/targets). The CLI has closed its database connection before agents write. Generate working-pattern prose only when `heuristics.allow_working_pattern_card` is true. If the MCP is unavailable or points elsewhere, report that narration is unavailable; do not claim it ran. See [the warehouse connection boundary](../asking-diligence/references/asker-boundary.md).
+6. Apply [building-dashboard](../building-dashboard/SKILL.md), including target, curation directory and privacy setting. Report the output path, preview URL, and any missing data sources.
+
+Use [pipeline stages](references/pipeline-stages.md) for data ownership and [tool prerequisites](references/tool-prerequisites.md) for optional analyzers. Keep these references aligned when a real run reveals a changed command or tool format.

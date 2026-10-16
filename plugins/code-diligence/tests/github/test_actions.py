@@ -1,22 +1,26 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
+from code_diligence.github.actions import fetch_and_persist_actions
 from code_diligence.warehouse.connection import open_warehouse
 from code_diligence.warehouse.migrations import migrate
-from code_diligence.warehouse.targets import register_target
 from code_diligence.warehouse.repos import upsert_repo
-from code_diligence.github.actions import fetch_and_persist_actions
+from code_diligence.warehouse.targets import register_target
 
 
 def test_fetch_and_persist_actions(httpx_mock, tmp_path: Path) -> None:
     httpx_mock.add_response(
         url="https://api.github.com/repos/acme/api/actions/runs?per_page=100&page=1",
-        json=[{
+        json={"workflow_runs": [{
             "id": 42,
             "name": "CI",
             "created_at": "2026-01-01T00:00:00Z",
             "updated_at": "2026-01-01T00:10:00Z",
             "conclusion": "success",
-        }],
+            "status": "completed",
+            "run_started_at": "2026-01-01T00:00:00Z",
+        }]},
         headers={},
     )
 
