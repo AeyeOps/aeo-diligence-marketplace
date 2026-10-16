@@ -13,7 +13,7 @@ from pathlib import Path
 
 import duckdb
 
-CODE_MAAT_VERSION = "1.0.4-SNAPSHOT"
+CODE_MAAT_VERSION = "1.0.4"
 CODE_MAAT_JAR = Path(__file__).resolve().parents[3] / "vendor" / f"code-maat-{CODE_MAAT_VERSION}-standalone.jar"
 
 

@@ -61,7 +61,19 @@ const couplings = await query(`
   ORDER BY cp.lift DESC LIMIT 100
 `, [target_id]);
 const narr2 = await narrative(target_id, "product", "hidden_coupling_matrix");
-if (couplings.length) display(Inputs.table(couplings, { columns: ["repo_id", "file_a", "file_b", "support_pct", "lift"] }));
+if (couplings.length) {
+  display(html`<p>${couplings.length} pairs match the current filters. Support is the share of repository commits that changed both files.</p>`);
+  display(Inputs.table(couplings, {
+    columns: ["repo_id", "file_a", "file_b", "support_pct", "lift"],
+    header: {repo_id: "Repository", file_a: "File A", file_b: "File B", support_pct: "Support", lift: "Lift"},
+    format: {
+      repo_id: value => html`<span style="white-space:normal;overflow-wrap:anywhere;">${value}</span>`,
+      file_a: value => html`<span style="white-space:normal;overflow-wrap:anywhere;">${value}</span>`,
+      file_b: value => html`<span style="white-space:normal;overflow-wrap:anywhere;">${value}</span>`,
+      support_pct: value => new Intl.NumberFormat(undefined, {style: "percent", maximumFractionDigits: 1}).format(value),
+    },
+  }));
+}
 else display(html`<p>No coupling rows match the current filters. See <a href="health.html">Health</a> for code-maat collection results.</p>`);
 ```
 
@@ -99,20 +111,27 @@ if (!ages.length) {
 
 ## Burndown over time
 
-Code survival over time, grouped by the year the code was introduced. Requires Hercules output.
+Code survival over time for each repository, grouped by the year the code was introduced. Repositories have different sample dates. Requires Hercules output.
 
 ```js
 const burndown = await query(`
-  SELECT snapshot_at, vintage_year, SUM(surviving_loc) AS surviving_loc
+  SELECT r.repo_id, r.name AS repo, snapshot_at, vintage_year, SUM(surviving_loc) AS surviving_loc
   FROM burndown_series bs JOIN repos r USING (repo_id)
-  WHERE r.target_id = ? GROUP BY snapshot_at, vintage_year ORDER BY snapshot_at, vintage_year
+  WHERE r.target_id = ? GROUP BY r.repo_id, r.name, snapshot_at, vintage_year
+  ORDER BY r.name, snapshot_at, vintage_year
 `, [target_id]);
 const narr4 = await narrative(target_id, "product", "burndown_over_time");
 if (burndown.length) {
-  display(Plot.plot({
-    marks: [Plot.areaY(burndown, {x: d => new Date(d.snapshot_at), y: "surviving_loc", fill: d => String(d.vintage_year), tip: true})],
-    color: {legend: true, label: "Vintage"}, y: {label: "Surviving LOC"}
-  }));
+  for (const repo_id of new Set(burndown.map(row => row.repo_id))) {
+    const series = burndown.filter(row => row.repo_id === repo_id);
+    display(html`<h3>${series[0].repo}</h3>`);
+    display(Plot.plot({
+      marks: [Plot.areaY(series, {x: d => new Date(d.snapshot_at), y: "surviving_loc", fill: d => String(d.vintage_year), tip: true})],
+      color: {type: "ordinal", legend: true, label: "Vintage"}, y: {label: "Surviving LOC"},
+      marginLeft: 80,
+      height: 280,
+    }));
+  }
 } else {
   display(html`<p>Code-survival data is unavailable. See <a href="health.html">Health</a> for tool results.</p>`);
 }

@@ -1,19 +1,35 @@
-"""Versioned schema migrations for the warehouse.
-
-For v1 there is only one migration: init the schema. Future schema
-changes register a callable per target version. `migrate()` walks
-from current_version up to SCHEMA_VERSION applying each.
-"""
+"""Apply registered migrations in version order to existing warehouses."""
 from collections.abc import Callable
 
 import duckdb
 
 from .schema import init_schema
 
+
+def _preserve_repowise_hits(conn: duckdb.DuckDBPyConnection) -> None:
+    """Retain every provider finding without assuming file/type uniqueness."""
+    conn.execute("""
+        BEGIN TRANSACTION;
+        CREATE TABLE repowise_findings_v3 (
+            repo_id VARCHAR NOT NULL,
+            scope VARCHAR NOT NULL,
+            finding_type VARCHAR NOT NULL,
+            severity VARCHAR,
+            evidence JSON
+        );
+        INSERT INTO repowise_findings_v3 SELECT * FROM repowise_findings;
+        DROP TABLE repowise_findings;
+        ALTER TABLE repowise_findings_v3 RENAME TO repowise_findings;
+        INSERT INTO schema_version (version)
+        SELECT 3 WHERE NOT EXISTS (SELECT 1 FROM schema_version WHERE version = 3);
+        COMMIT;
+    """)
+
+
 MIGRATIONS: dict[int, Callable[[duckdb.DuckDBPyConnection], None]] = {
     1: init_schema,
-    # v2: adds commit_file_authors (idempotent — init_schema's CREATE IF NOT EXISTS picks it up)
     2: init_schema,
+    3: _preserve_repowise_hits,
 }
 
 
