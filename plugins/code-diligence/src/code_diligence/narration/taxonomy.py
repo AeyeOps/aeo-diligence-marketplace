@@ -1,6 +1,6 @@
-"""Canonical taxonomy of narrative sections per axis. Mirrors spec §6."""
+"""Canonical dashboard sections and the evidence collected for each."""
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 import duckdb
 
@@ -14,39 +14,36 @@ class SectionDef:
 
 
 TAXONOMY: tuple[SectionDef, ...] = (
-    # People
     SectionDef("people", "bus_factor_map", "Bus factor map",
-               "Repos colored by min-N FTE authors needed to cover 50% of code knowledge."),
+               "Minimum confirmed FTEs covering 50% of git-fame LOC in production or tooling repositories, after combining identity aliases. Insufficient FTE ownership is unavailable."),
     SectionDef("people", "knowledge_concentration", "Knowledge concentration heatmap",
-               "% of code owned by top-1/3/5 FTEs per repo; >60% top-1 = key-person risk."),
+               "Top canonical contributor's share of git-fame LOC per repository."),
     SectionDef("people", "contributor_activity_timeline", "Contributor activity timeline",
-               "Monthly active contributors stacked by class, with joiner/leaver overlays."),
+               "Monthly distinct canonical contributors grouped by confirmed classification; unclassified contributors remain unknown."),
     SectionDef("people", "communication_graph", "Communication graph",
-               "Force-directed graph of co-editing relationships."),
+               "Canonical authors linked when they change the same file in the same month. Edge weights count shared file/month combinations, not observed communication."),
     SectionDef("people", "hero_dependency_register", "Hero/dependency register",
-               "Files where one person owns 90%+ of recent commits."),
-    # Product
+               "Files where one author accounts for at least 90% of historical additions according to code-maat."),
     SectionDef("product", "hotspot_map", "Hotspot map",
-               "Repo treemap; size=LOC, color=revisions × complexity."),
+               "File revision counts in production and tooling repositories. The score uses complexity only when collected; the current pipeline does not populate complexity."),
     SectionDef("product", "hidden_coupling_matrix", "Hidden coupling matrix",
-               "Heatmap of file/module pairs with high co-change support × lift."),
+               "Code-maat file pairs with shared-commit counts, support and lift from walker facts. The card displays lift above 1.5 and support above 0.05."),
     SectionDef("product", "code_aging_chart", "Code aging chart",
-               "git-of-theseus stacked area: how much code from each cohort year still survives."),
+               "Current surviving LOC by introduction year from git-of-theseus."),
     SectionDef("product", "burndown_over_time", "Burndown over time",
-               "hercules per-repo time-series of code survival, comparable across repos."),
+               "Surviving LOC at each snapshot, grouped by vintage year, from hercules."),
     SectionDef("product", "abandoned_area_register", "Abandoned area register",
-               "Modules with no commits in N days (default 180), with last-author + last-message."),
-    SectionDef("product", "tech_stack_drift", "Tech-stack inventory + drift",
-               "Per-repo language and dependency footprint with introduced/deprecated bands."),
-    # Process
-    SectionDef("process", "dora_quadrant", "DORA quadrant",
-               "Deploy frequency, lead time, change failure rate, MTTR per repo."),
+               "Repositories with confirmed abandoned classification and their last commit evidence."),
+    SectionDef("product", "tech_stack_drift", "Technology inventory",
+               "Current GitHub primary language per repository. Historical technology changes and language LOC totals are not collected."),
+    SectionDef("process", "dora_quadrant", "Repository delivery indicators",
+               "Releases in the last 30 days, average PR cycle time and workflow failure fraction. These are not DORA deployment or incident metrics."),
     SectionDef("process", "review_discipline", "Review discipline",
-               "Review latency, reviewers per PR, self-merge rate, merge-without-review rate."),
+               "PR review latency, distinct reviewer count, self-merge fraction among merged PRs with known merger, and merged PRs without approvals."),
     SectionDef("process", "ci_health", "CI health",
-               "Workflow success rate over time, flaky-test inference, slowest jobs."),
+               "Completed workflow outcomes and durations by repository and workflow."),
     SectionDef("process", "issue_triage_health", "Issue triage health",
-               "Open/closed over time, time-to-first-response, stale count."),
+               "Average time to first issue comment and count of issues still open after 90 days. A first comment is not necessarily a maintainer response."),
     SectionDef("process", "working_pattern_signals", "Working pattern signals",
                "Commits by hour-of-day × day-of-week, aggregated to repo level."),
 )

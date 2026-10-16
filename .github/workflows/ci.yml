@@ -19,13 +19,13 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: "17" }
       - name: Install Python deps
-        run: uv sync
-      - name: Install MCP server deps
-        working-directory: plugins/code-diligence/mcp/diligence-warehouse
-        run: uv sync
+        run: uv sync --all-packages
       - name: Run tests (skips ones requiring uninstalled tools)
+        run: uv run pytest -v
+      - name: Run MCP server tests
+        working-directory: plugins/code-diligence/mcp/diligence-warehouse
         run: uv run pytest -v
       - name: Lint
         run: uv run ruff check .
       - name: Type check
-        run: uv run pyright src/
+        run: uv run pyright src/ mcp/diligence-warehouse/server.py

@@ -12,13 +12,9 @@ Casper da Costa-Luis's per-author attribution tool. Canonical source for `owners
 
 The wrapper shells out to:
 
-    git fame --json --silent-progress -e --bytype --git-dir <repo>/.git <repo>
+    git-fame --format=json --show=name,email <repo>
 
-- `--json` emits the `{columns: [...], data: [[...]]}` payload that `parse_git_fame_json` consumes.
-- `--silent-progress` suppresses the TTY progress bar so stdout stays parseable.
-- `-e` keys rows by email rather than display name (this is what makes git-fame the canonical, email-keyed source).
-- `--bytype` adds per-file-type breakdown; `parse_git_fame_json` only reads the aggregate columns, but the flag does not break parsing.
-- Timeout: 300s. Non-zero exit raises `GitFameError`; `isolated()` records a `tool_failures` row of class `runtime`.
+The JSON payload contains `columns` and `data`; `Author` is `Name <email>`, with `loc`, `coms`, and `fils` numeric columns. The parser uses those named columns and rejects an unexpected format. Timeout: 300 seconds. Failures are recorded by the ingest isolation boundary.
 
 ## Why canonical
 
@@ -32,9 +28,8 @@ The wrapper shells out to:
 ## Quirks
 
 - **Email normalization.** `parse_git_fame_json` lower-cases emails and strips whitespace so two casings of the same address collapse to one row.
-- **Column-index defensiveness.** The parser uses `cols.index(...)` with positional fallbacks so a column reorder in a future git-fame release degrades to wrong values rather than a crash — watch the Health tab if values look off after a git-fame upgrade.
 - **No generated-code filter.** git-fame respects `.gitattributes` for binary detection but has no built-in way to skip generated source. Filter at the dashboard layer via `repo_classification`.
 
 ## Cross-check
 
-Disagreements with git-truck (byte-size-proxied, name-based) surface as Health-tab rows. Always trust git-fame as the answer; see `references/cross-check-policy.md`.
+git-truck supplies a separate name-based, change-count ownership estimate. Use git-fame for surviving LOC ownership; see `references/cross-check-policy.md`.

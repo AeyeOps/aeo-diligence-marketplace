@@ -8,7 +8,7 @@ Entry point: `src/code_diligence/cli.py::ingest`. Each stage is idempotent — r
 
 ## Stage 2 — Target + repo registration
 
-`register_target(...)` upserts a row in `targets`. Each subdirectory of `storage.repo_clone_root` that contains `.git/` is registered via `upsert_repo(...)` in `repos`.
+`register_target(...)` upserts a row in `targets`. When GitHub is enabled, the CLI enumerates the configured organizations, applies `include_archived`, and clones or fast-forwards repositories under `<repo_clone_root>/<owner>/<repo>`. Existing local repositories at one or two directory levels are also discovered. Fetch failures are recorded and excluded from that run; divergent branches are not reset. Repositories are registered with `upsert_repo(...)`.
 
 ## Stage 3 — Git walk (per repo, isolated)
 
@@ -61,10 +61,10 @@ Per repo: `pr_metrics`, `actions_metrics`, `release_metrics`, `issue_metrics`. D
 
 `compute_axis_confidence(...)` writes `axis_confidence` (per-axis signal completeness). `load_taxonomy_into_warehouse(...)` writes the canonical card list to `axes_taxonomy`. See `skills/understanding-pe-diligence-axes/SKILL.md` for the card map.
 
-## Stage 9 — Narrator (if `claude` CLI + `ANTHROPIC_API_KEY` present)
+## Stage 9 — Tooling versions and completion
 
-`run_narrator_for_target(...)` spawns the `diligence-narrator` agent, which writes one narrative per `(axis, section_key)` into `narratives`. Missing CLI → stage skipped; dashboard still renders, without prose.
+`update_tooling_versions(...)` records available tool versions in `targets.tooling_versions`. The CLI prints curation counts and recorded failures, updates `last_refreshed_at`, and closes the warehouse.
 
-## Stage 10 — Tooling versions snapshot
+## After the CLI — Narration and dashboard
 
-`update_tooling_versions(...)` writes `{tool_name: version}` JSON into `targets.tooling_versions`. Missing tools recorded as `"not-installed"`, so the column reflects environment provenance even on partial runs.
+The ingesting skill invokes the runtime's native `diligence-narrator` agent after the CLI closes its warehouse connection. The narrator uses the registered warehouse MCP tools. Then the skill invokes the dashboard renderer with the target's configured paths and privacy setting. Ingest alone does not invoke an LLM or build HTML.

@@ -12,3 +12,7 @@ const repos = await query(`
 `, [target_id]);
 display(Inputs.table(repos, { columns: ["name", "class", "commits", "last_commit_at", "is_archived"] }));
 ```
+
+```js
+display(html`<a href="../${observable.params.target}.html">Target overview</a> · <a href="/index.html">Portfolio</a>`);
+```

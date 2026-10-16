@@ -9,18 +9,17 @@ Tools exposed:
 from __future__ import annotations
 
 import argparse
-import json
-import os
 from pathlib import Path
+from threading import Timer
 from typing import Any
 
 import duckdb
 import sqlglot
-from sqlglot import exp
 from mcp.server.fastmcp import FastMCP
+from sqlglot import exp
+from sqlglot.errors import ParseError
+from sqlglot.expressions.dml import DML
 
-
-# --- pure handlers (testable without MCP transport) ---
 
 def handle_list_tables(warehouse: Path) -> dict[str, Any]:
     conn = duckdb.connect(str(warehouse), read_only=True)
@@ -56,11 +55,9 @@ def handle_describe_table(warehouse: Path, name: str) -> dict[str, Any]:
     return {"name": name, "columns": [{"name": r[0], "type": r[1]} for r in rows]}
 
 
-# --- MCP wiring ---
-
 mcp = FastMCP("diligence-warehouse")
 
-# Server-wide state set at startup
+
 _warehouse_path: Path | None = None
 
 
@@ -90,34 +87,38 @@ class ReadQueryError(RuntimeError):
 
 
 def handle_read_query(warehouse: Path, sql: str) -> dict[str, Any]:
-    # Parse — single statement only
+
     try:
         statements = sqlglot.parse(sql, dialect="duckdb")
-    except sqlglot.errors.ParseError as e:
+    except ParseError as e:
         raise ReadQueryError(f"invalid SQL: {e}") from e
     if len(statements) != 1 or statements[0] is None:
         raise ReadQueryError("read_query expects a single statement")
     stmt = statements[0]
 
-    # Allow only Select (CTE-wrapped Select also parses as Select with .with_)
-    if not isinstance(stmt, exp.Select):
+
+    if not isinstance(stmt, exp.Query):
         kind = type(stmt).__name__
         raise ReadQueryError(f"{kind} is not allowed; read_query is SELECT-only")
 
-    # Reject ATTACH / DETACH / SET / pragma — these may parse as Command
-    for node in stmt.walk():
-        if isinstance(node[0], (exp.Command, exp.Pragma)):
-            raise ReadQueryError(f"{node[0].name} is not allowed in read_query")
 
-    # Execute (DuckDB has no statement_timeout setting; read_only=True prevents writes)
-    conn = duckdb.connect(str(warehouse), read_only=True)
+    for node in stmt.walk():
+        if isinstance(node, (DML, exp.DDL, exp.Command, exp.Pragma)):
+            raise ReadQueryError(f"{type(node).__name__} is not allowed in read_query")
+
+
+    conn = duckdb.connect(str(warehouse), read_only=True, config={"enable_external_access": False})
+    timer = Timer(READ_QUERY_TIMEOUT_MS / 1000, conn.interrupt)
     try:
+        timer.start()
         cursor = conn.execute(sql)
         columns = [d[0] for d in cursor.description] if cursor.description else []
         rows = cursor.fetchall()
     except duckdb.Error as e:
         raise ReadQueryError(f"query failed: {e}") from e
     finally:
+        timer.cancel()
+        timer.join()
         conn.close()
 
     return {
@@ -203,9 +204,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--warehouse", required=True, type=Path)
     args = parser.parse_args()
-    _warehouse_path = args.warehouse.expanduser().resolve()
-    if not _warehouse_path.exists():
-        raise SystemExit(f"warehouse not found: {_warehouse_path}")
+    warehouse_path = args.warehouse.expanduser().resolve()
+    if not warehouse_path.exists():
+        raise SystemExit(f"warehouse not found: {warehouse_path}")
+    _warehouse_path = warehouse_path
     mcp.run()
 
 

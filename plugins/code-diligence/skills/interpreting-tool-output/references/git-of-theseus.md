@@ -6,7 +6,7 @@ Erik Bernhardsson's cohort-survival analyzer. Answers: "Of the LOC introduced in
 
 | git-of-theseus output | Warehouse table | Notes |
 |---|---|---|
-| `cohorts.json` (latest snapshot row) | `code_age_buckets (repo_id, bucket_start_year, surviving_loc, deleted_loc)` | Canonical for Product `code_aging_chart` on quick tier; hercules supplies the time-series view |
+| `cohorts.json` (latest sample per cohort) | `code_age_buckets (repo_id, bucket_start_year, surviving_loc, deleted_loc)` | Canonical for Product `code_aging_chart` on quick tier; hercules supplies the time-series view |
 
 ## Invocation (`src/code_diligence/tools/git_of_theseus.py`)
 
@@ -20,11 +20,11 @@ The wrapper shells out to:
 
 ## What it does
 
-For each historical snapshot, git-of-theseus computes how much of each prior cohort's introduction is still present. The wrapper reads only the **last** row of `cohorts.json["y"]` — the most recent snapshot — and zips it against `cohorts.json["labels"]`.
+For each historical snapshot, git-of-theseus computes how much of each prior cohort's introduction is still present. Each row of `cohorts.json["y"]` is one cohort's time series. The wrapper takes its last sample and pairs the row with its corresponding label.
 
 ## Persistence shape
 
-`parse_cohorts_json` normalizes each label to a 4-digit year (`int(str(label)[:4])`). Labels that don't start with a parseable year are silently skipped. `persist_git_of_theseus` deletes prior `code_age_buckets` rows for the repo and re-inserts; `deleted_loc` is currently always written as `0` (the latest snapshot only carries surviving LOC).
+`parse_cohorts_json` reads labels in the upstream `Code added in YYYY` format and aggregates their last samples by year. Unexpected labels or mismatched row counts raise an error. `persist_git_of_theseus` deletes prior `code_age_buckets` rows for the repo and re-inserts; `deleted_loc` is currently always written as `0` (the latest snapshot only carries surviving LOC).
 
 ## Quirks
 

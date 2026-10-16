@@ -1,19 +1,23 @@
 ---
 name: refreshing-target
-description: Incrementally refresh an existing code-diligence target — pull new commits, rerun the tool wrappers, and update the warehouse without resetting analyst-confirmed curations. Use when the target was already ingested (its warehouse exists) and the user invokes /code-diligence:refresh, or asks to recompute, rerun, or update an existing target's data.
-argument-hint: <target>
-allowed-tools: Bash, Read
+description: Refresh an existing code-diligence target after its source repositories change, preserving analyst-confirmed curations. Applies to requests to rerun or update target data, not to rebuild only the dashboard.
+allowed-tools: Bash, Read, Agent
 ---
 
-The user has invoked `/code-diligence:refresh <target>`.
+# Refresh a diligence target
 
-1. Resolve `<target>` to its settings file at `~/.claude/code-diligence-<target>.local.md`. If missing, tell the user to follow `skills/ingesting-target/SKILL.md` first and stop.
-2. Confirm the warehouse already exists at the `storage.warehouse_path` from settings. If absent, the operation is an initial ingest, not a refresh — direct the user to `skills/ingesting-target/SKILL.md`.
-3. Run a full-tier rerun (incremental cloner + every tool pass; the underlying CLI is idempotent — repeated commits do not double-count):
+In Claude Code invoke `/code-diligence:refreshing-target`; in Codex invoke `$refreshing-target`.
 
-       uv run --directory ${CLAUDE_PLUGIN_ROOT} code-diligence ingest <settings-path> --full
+Read `~/.claude/code-diligence-<target>.local.md` and confirm its warehouse exists. For an initial run, use [ingesting-target](../ingesting-target/SKILL.md).
 
-4. On success, report `targets.last_refreshed_at` (a timestamp in the warehouse) so the user can confirm the refresh actually landed.
-5. On non-zero exit, surface the CLI's stderr verbatim. Do not paraphrase tool failures — they are logged into `tool_failures` for later inspection.
+Run the existing ingest path with `--full`:
 
-The dedicated `refresh` subcommand is a Phase 5 candidate; until it lands, `ingest --full` is the supported path because both share the same idempotent walker + tool wrappers.
+```sh
+uv run --directory "$PLUGIN_ROOT" code-diligence ingest "$SETTINGS_PATH" --full
+```
+
+GitHub sources are fetched and fast-forwarded before analysis. Local checkouts with an origin are fetched and fast-forwarded too; a divergent checkout is reported, never reset. Analyst entries with `source: analyst` remain authoritative; heuristic entries are recomputed.
+
+After a successful run, follow the narration and dashboard steps in [ingesting-target](../ingesting-target/SKILL.md). Report `targets.last_refreshed_at`, the built dashboard, and any recorded tool failures. A failed command is not a completed refresh.
+
+The stage contract lives in [pipeline stages](../ingesting-target/references/pipeline-stages.md). Correct that reference when a real run reveals a changed behavior.

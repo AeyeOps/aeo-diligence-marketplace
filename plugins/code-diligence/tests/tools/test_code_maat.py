@@ -1,15 +1,19 @@
 import shutil
 from pathlib import Path
+
 import pytest
+
+from code_diligence.tools.code_maat import (
+    CODE_MAAT_JAR,
+    build_log_dump,
+    parse_revisions_csv,
+    persist_revisions,
+    run_code_maat_analysis,
+)
 from code_diligence.warehouse.connection import open_warehouse
 from code_diligence.warehouse.migrations import migrate
-from code_diligence.warehouse.targets import register_target
 from code_diligence.warehouse.repos import upsert_repo
-from code_diligence.tools.code_maat import (
-    build_log_dump, run_code_maat_analysis, persist_revisions,
-    persist_coupling, persist_entity_ownership, parse_revisions_csv,
-    CODE_MAAT_JAR,
-)
+from code_diligence.warehouse.targets import register_target
 
 
 def test_parse_revisions_csv() -> None:

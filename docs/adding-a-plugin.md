@@ -43,10 +43,7 @@ Recommended:
     "email": "275853971+aeyeopsdev@users.noreply.github.com"
   },
   "homepage": "https://github.com/AeyeOps/aeo-diligence-marketplace/tree/main/plugins/your-plugin",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/AeyeOps/aeo-diligence-marketplace.git"
-  },
+  "repository": "https://github.com/AeyeOps/aeo-diligence-marketplace.git",
   "license": "MIT"
 }
 ```

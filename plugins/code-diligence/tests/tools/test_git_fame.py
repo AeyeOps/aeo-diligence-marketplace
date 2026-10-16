@@ -34,7 +34,7 @@ def test_persist_git_fame_writes_ownership_share(synthetic_target: Path, tmp_pat
             "WHERE repo_id='acme/api' AND source='git-fame'"
         ).fetchall()
     assert len(rows) >= 2
-    assert sum(r[1] for r in rows) > 0  # some LOC attributed
+    assert sum(r[1] for r in rows) > 0
 
 
 def test_parse_git_fame_json_fixture() -> None:
@@ -42,10 +42,10 @@ def test_parse_git_fame_json_fixture() -> None:
     from code_diligence.tools.git_fame import parse_git_fame_json
     sample = {
         "data": [
-            ["Pat S", "pat@acme.com", "30", "5", "3", "0.5"],
-            ["Mike B", "mike@acme.com", "10", "2", "1", "0.2"],
+            ["Pat S <pat@acme.com>", "30", "5", "3", "0.5"],
+            ["Mike B <mike@acme.com>", "10", "2", "1", "0.2"],
         ],
-        "columns": ["Author", "Email", "loc", "coms", "fils", "distribution"],
+        "columns": ["Author", "loc", "coms", "fils", "distribution"],
     }
     records = parse_git_fame_json(sample)
     assert len(records) == 2

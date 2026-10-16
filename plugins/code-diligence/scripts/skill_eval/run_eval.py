@@ -13,19 +13,20 @@ Output:
   - Precision / recall per skill
   - Markdown summary (results.md)
 
-The eval is non-interactive: one `claude -p --bare` invocation per run, no
+The eval is non-interactive: one `claude -p` invocation per run, no
 human in loop. Designed to be cheap (Haiku, single batched call) and
-reproducible (--bare skips hooks/plugins/CLAUDE.md).
+reproducible (tools and MCP are disabled for the judge).
 """
 
 from __future__ import annotations
 
 import json
-import re
 import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
+
+import yaml
 
 HERE = Path(__file__).resolve().parent
 PLUGIN_ROOT = HERE.parent.parent
@@ -34,52 +35,23 @@ CASES_PATH = HERE / "cases.yaml"
 RESULTS_JSON = HERE / "results.json"
 RESULTS_MD = HERE / "results.md"
 
-DEFAULT_MODEL = "claude-haiku-4-5-20251001"
+DEFAULT_MODEL = "haiku"
 
 
 def load_skill_descriptions() -> dict[str, str]:
     """Parse each skills/<name>/SKILL.md frontmatter; return {name: description}."""
-    out: dict[str, str] = {}
+    descriptions = {}
     for skill_md in sorted(SKILLS_DIR.glob("*/SKILL.md")):
-        text = skill_md.read_text(encoding="utf-8")
-        m = re.match(r"---\n(.*?)\n---", text, re.DOTALL)
-        if not m:
-            raise SystemExit(f"No frontmatter in {skill_md}")
-        fm = m.group(1)
-        name_m = re.search(r"^name:\s*(.+)$", fm, re.MULTILINE)
-        desc_m = re.search(r"^description:\s*(.+?)(?=\n[\w-]+:|\Z)", fm, re.MULTILINE | re.DOTALL)
-        if not (name_m and desc_m):
-            raise SystemExit(f"Missing name/description in {skill_md}")
-        out[name_m.group(1).strip()] = " ".join(desc_m.group(1).split())
-    return out
+        parts = skill_md.read_text(encoding="utf-8").split("---", 2)
+        if len(parts) != 3 or parts[0].strip():
+            raise ValueError(f"No frontmatter in {skill_md}")
+        metadata = yaml.safe_load(parts[1])
+        descriptions[metadata["name"]] = metadata["description"]
+    return descriptions
 
 
 def load_cases() -> list[dict]:
-    """Minimal YAML loader for our flat structure (avoids PyYAML dep)."""
-    text = CASES_PATH.read_text(encoding="utf-8")
-    cases: list[dict] = []
-    current: dict | None = None
-    for raw in text.splitlines():
-        line = raw.rstrip()
-        if not line or line.lstrip().startswith("#"):
-            continue
-        if line.startswith("cases:"):
-            continue
-        if line.startswith("  - id:"):
-            if current:
-                cases.append(current)
-            current = {"id": line.split(":", 1)[1].strip()}
-        elif current is not None and line.startswith("    prompt:"):
-            val = line.split(":", 1)[1].strip()
-            if val.startswith('"') and val.endswith('"'):
-                val = val[1:-1]
-            current["prompt"] = val
-        elif current is not None and line.startswith("    expected:"):
-            val = line.split(":", 1)[1].strip()
-            current["expected"] = None if val == "null" else val
-    if current:
-        cases.append(current)
-    return cases
+    return yaml.safe_load(CASES_PATH.read_text(encoding="utf-8"))["cases"]
 
 
 def build_judge_prompt(skills: dict[str, str], cases: list[dict]) -> tuple[str, str]:
@@ -107,12 +79,18 @@ def build_judge_prompt(skills: dict[str, str], cases: list[dict]) -> tuple[str, 
 
 
 def call_judge(system: str, user: str, model: str) -> str:
-    """Invoke `claude -p --bare` with our judge system prompt; return stdout."""
+    """Invoke `claude -p` with our judge system prompt; return stdout."""
     proc = subprocess.run(
         [
             "claude",
             "-p",
             "--disable-slash-commands",
+            "--tools",
+            "",
+            "--strict-mcp-config",
+            "--mcp-config",
+            '{"mcpServers": {}}',
+            "--no-session-persistence",
             "--model",
             model,
             "--system-prompt",
@@ -141,12 +119,21 @@ def parse_judge_output(stdout: str) -> dict[str, dict]:
         except json.JSONDecodeError:
             continue
         if "id" in obj and "best_skill" in obj:
+            if obj["id"] in out:
+                raise ValueError(f"Duplicate judge result: {obj['id']}")
             out[obj["id"]] = obj
     return out
 
 
 def score(cases: list[dict], preds: dict[str, dict]) -> dict:
     """Compute per-case correctness, per-skill precision/recall, totals."""
+    expected_ids = {case["id"] for case in cases}
+    if set(preds) != expected_ids:
+        raise ValueError(f"Judge output IDs do not match the cases: missing={sorted(expected_ids - set(preds))}, unexpected={sorted(set(preds) - expected_ids)}")
+    valid_skills = set(load_skill_descriptions())
+    for prediction in preds.values():
+        if prediction["best_skill"] is not None and prediction["best_skill"] not in valid_skills:
+            raise ValueError(f"Unknown skill in judge output: {prediction['best_skill']}")
     per_skill_tp: dict[str, int] = defaultdict(int)
     per_skill_fp: dict[str, int] = defaultdict(int)
     per_skill_fn: dict[str, int] = defaultdict(int)

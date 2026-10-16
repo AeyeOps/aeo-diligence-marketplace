@@ -1,30 +1,33 @@
-import shutil
+import subprocess
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
+from code_diligence.tools.repowise import (
+    fetch_repowise_findings_for_repo,
+    persist_repowise,
+)
 from code_diligence.warehouse.connection import open_warehouse
 from code_diligence.warehouse.migrations import migrate
-from code_diligence.warehouse.targets import register_target
 from code_diligence.warehouse.repos import upsert_repo
-from code_diligence.tools.repowise import fetch_repowise_findings_for_repo, persist_repowise
+from code_diligence.warehouse.targets import register_target
 
 
-def test_fetch_repowise_returns_empty_when_binary_missing(tmp_path: Path) -> None:
-    """Returns [] when repowise binary is not available."""
+def test_fetch_repowise_raises_when_binary_missing(tmp_path: Path) -> None:
+    """Report the missing prerequisite to the isolation boundary."""
     with patch("code_diligence.tools.repowise.subprocess.run", side_effect=FileNotFoundError):
-        result = fetch_repowise_findings_for_repo(tmp_path)
-    assert result == []
+        with pytest.raises(FileNotFoundError):
+            fetch_repowise_findings_for_repo(tmp_path)
 
 
-def test_fetch_repowise_returns_empty_on_nonzero_exit(tmp_path: Path) -> None:
-    """Returns [] when repowise exits nonzero."""
-    import subprocess
-    mock_result = subprocess.CompletedProcess(args=[], returncode=1, stdout="", stderr="error")
-    with patch("code_diligence.tools.repowise.subprocess.run", return_value=mock_result):
-        result = fetch_repowise_findings_for_repo(tmp_path)
-    assert result == []
+def test_fetch_repowise_raises_on_nonzero_exit(tmp_path: Path) -> None:
+    with patch(
+        "code_diligence.tools.repowise.subprocess.run",
+        side_effect=subprocess.CalledProcessError(1, "repowise", stderr="error"),
+    ):
+        with pytest.raises(subprocess.CalledProcessError):
+            fetch_repowise_findings_for_repo(tmp_path)
 
 
 def test_persist_repowise_writes_rows(tmp_path: Path) -> None:

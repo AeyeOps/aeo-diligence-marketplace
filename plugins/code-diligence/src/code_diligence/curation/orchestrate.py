@@ -36,11 +36,12 @@ def run_curation_pass(
     curation_dir: Path,
     repo_root: Path,
     abandoned_threshold_days: int,
+    fte_inference: bool = True,
 ) -> None:
     """Run identity / FTE / repo classification heuristics and persist results."""
     curation_dir.mkdir(parents=True, exist_ok=True)
 
-    # --- Identity ---
+
     authors = _query_authors(conn, target_id)
     proposals_raw = propose_merges(authors)
     proposals = [
@@ -56,14 +57,14 @@ def run_curation_pass(
     id_path.write_text(id_merged.to_yaml())
     apply_identity(conn, target_id=target_id, file=id_merged)
 
-    # --- FTE ---
+
     activities = _query_activities(conn, target_id, target_domain)
     fte_classifications = [
         FteClassificationEntry(
             email=c.email, label=c.label, confidence=c.confidence,
             source="heuristic", signals=c.signals,
         )
-        for c in classify_all(activities)
+        for c in (classify_all(activities) if fte_inference else [])
     ]
     fte_path = curation_dir / "fte-classification.yaml"
     fte_existing = _load_or_default(fte_path, FteClassificationFile)
@@ -71,7 +72,7 @@ def run_curation_pass(
     fte_path.write_text(fte_merged.to_yaml())
     apply_fte(conn, target_id=target_id, file=fte_merged)
 
-    # --- Repo class ---
+
     repos = _query_repo_facts(conn, target_id, repo_root)
     repo_classifications = [
         RepoClassificationEntry(
@@ -85,6 +86,10 @@ def run_curation_pass(
     rc_existing = _load_or_default(rc_path, RepoClassificationFile)
     rc_merged = merge_repo(rc_existing, repo_classifications)
     rc_path.write_text(rc_merged.to_yaml())
+    conn.execute(
+        "DELETE FROM repo_classification WHERE repo_id IN (SELECT repo_id FROM repos WHERE target_id = ?)",
+        [target_id],
+    )
     apply_repo_class(conn, file=rc_merged)
 
 
@@ -124,7 +129,7 @@ def _query_activities(
             tenure_days=int(tenure or 0), total_commits=int(total or 0),
             repos_touched=int(breadth or 0),
             weekday_commit_pct=float(weekday or 0.0),
-            burstiness=0.0,  # rough first version; refine in v2
+            burstiness=0.0,
         ))
     return out
 

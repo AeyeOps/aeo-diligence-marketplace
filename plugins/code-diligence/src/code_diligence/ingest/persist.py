@@ -16,9 +16,6 @@ def persist_repo_git_facts(
 ) -> None:
     """Idempotent upsert: commits_fact, authors, file_metrics; updates repos.first/last_commit_at."""
     commits = list(commits)
-    if not commits:
-        return
-
     target_row = conn.execute(
         "SELECT target_id FROM repos WHERE repo_id = ?", [repo_id]
     ).fetchone()
@@ -45,12 +42,13 @@ def persist_repo_git_facts(
                 repo_id, c.sha, c.author_email, c.author_date,
                 fc.path, fc.lines_added, fc.lines_removed,
             ))
-    conn.executemany(
-        "INSERT INTO commits_fact (repo_id, commit_sha, author_email, author_date, "
-        "files_changed, lines_added, lines_removed, is_merge, is_revert, message_first_line) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        rows_commits,
-    )
+    if rows_commits:
+        conn.executemany(
+            "INSERT INTO commits_fact (repo_id, commit_sha, author_email, author_date, "
+            "files_changed, lines_added, lines_removed, is_merge, is_revert, message_first_line) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            rows_commits,
+        )
     if rows_edges:
         conn.executemany(
             "INSERT INTO commit_file_authors "
@@ -76,7 +74,7 @@ def persist_repo_git_facts(
                 "UPDATE authors SET display_name = ?, "
                 "first_seen = LEAST(COALESCE(first_seen, ?), ?), "
                 "last_seen  = GREATEST(COALESCE(last_seen, ?), ?), "
-                "total_commits = total_commits + ? "
+                "total_commits = ? "
                 "WHERE author_email = ? AND target_id = ?",
                 [b["name"], b["first"], b["first"], b["last"], b["last"], b["count"], email, target_id],
             )
@@ -86,6 +84,27 @@ def persist_repo_git_facts(
                 "first_seen, last_seen, total_commits) VALUES (?, ?, ?, ?, ?, ?)",
                 [email, target_id, b["name"], b["first"], b["last"], b["count"]],
             )
+
+    conn.execute("""
+        UPDATE authors AS a SET
+          first_seen = stats.first_seen,
+          last_seen = stats.last_seen,
+          total_commits = stats.total_commits,
+          is_active_l90 = stats.last_seen >= CURRENT_TIMESTAMP - INTERVAL '90 days'
+        FROM (
+          SELECT cf.author_email, MIN(cf.author_date) AS first_seen,
+                 MAX(cf.author_date) AS last_seen, COUNT(*) AS total_commits
+          FROM commits_fact cf JOIN repos r USING (repo_id)
+          WHERE r.target_id = ? GROUP BY cf.author_email
+        ) stats
+        WHERE a.target_id = ? AND a.author_email = stats.author_email
+    """, [target_id, target_id])
+    conn.execute("""
+        DELETE FROM authors AS a WHERE a.target_id = ? AND NOT EXISTS (
+          SELECT 1 FROM commits_fact cf JOIN repos r USING (repo_id)
+          WHERE r.target_id = a.target_id AND cf.author_email = a.author_email
+        )
+    """, [target_id])
 
     conn.execute("DELETE FROM file_metrics WHERE repo_id = ?", [repo_id])
     file_rev: dict[str, dict[str, Any]] = defaultdict(lambda: {"revisions": 0, "authors": set(), "last": None})
@@ -99,14 +118,15 @@ def persist_repo_git_facts(
         (repo_id, path, m["revisions"], len(m["authors"]), m["last"])
         for path, m in file_rev.items()
     ]
-    conn.executemany(
-        "INSERT INTO file_metrics (repo_id, path, revisions, total_authors, last_modified_at) "
-        "VALUES (?, ?, ?, ?, ?)",
-        rows_files,
-    )
+    if rows_files:
+        conn.executemany(
+            "INSERT INTO file_metrics (repo_id, path, revisions, total_authors, last_modified_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            rows_files,
+        )
 
-    first = min(c.author_date for c in commits)
-    last  = max(c.author_date for c in commits)
+    first = min((c.author_date for c in commits), default=None)
+    last = max((c.author_date for c in commits), default=None)
     conn.execute(
         "UPDATE repos SET first_commit_at = ?, last_commit_at = ? WHERE repo_id = ?",
         [first, last, repo_id],

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from code_diligence.warehouse.connection import open_warehouse
-from code_diligence.warehouse.migrations import MIGRATIONS, current_version, migrate
+from code_diligence.warehouse.migrations import current_version, migrate
 from code_diligence.warehouse.schema import SCHEMA_VERSION
 
 

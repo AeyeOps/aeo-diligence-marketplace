@@ -1,41 +1,19 @@
-# Cross-source disagreement policy
+# Comparing tool evidence
 
-When two tools populate the same logical metric, the warehouse stores both with a `source` discriminator. Disagreements are not errors — they are signals.
+The warehouse preserves source-specific results. The pipeline does not compute cross-tool disagreements or insert `data_sanity` advisories automatically. Health shows recorded tool failures, completeness, and tool versions.
 
-## How disagreements are surfaced
+## Source selection
 
-The pipeline computes a sanity diff at the end of stage 4 (cheap tools) and stage 6 (expensive tools). Diffs that cross a configurable threshold get written as `tool_failures` rows of class `data_sanity`:
+| Evidence | Source used by the dashboard |
+|---|---|
+| Surviving LOC ownership and bus factor | git-fame, with confirmed identity and contributor classifications |
+| File revision counts | walker, updated by code-maat when run |
+| Dominant historical file contributor | code-maat entity ownership |
+| Hidden coupling | code-maat pairs with counts, support and lift computed from walker facts |
+| Current code vintage | git-of-theseus |
+| Code survival over time | hercules |
+| Raw supplemental findings | repowise; queried separately, not merged into cards |
 
-| Logical metric | Sources | Threshold |
-|---|---|---|
-| Ownership (per repo, top author %) | git-fame, git-truck, repowise | absolute difference > 20 percentage points |
-| Hotspots (top-10 files by composite score) | code-maat, repowise | symmetric set difference > 4 files |
-| Bus factor (per repo) | code-maat, repowise | difference > 1 |
-| Coupling (top-20 pairs) | code-maat, hercules | symmetric set difference > 8 pairs |
+Before comparing numbers, compare their units, file set, time window, and identity handling. Git-fame measures surviving blamed lines; git-truck measures historical change volume under display names. Those numbers are not interchangeable. A difference alone does not establish that either tool failed.
 
-These rows do not block the pipeline. The dashboard's Health tab reads `tool_failures WHERE class='data_sanity'` and renders them as advisories.
-
-## Dashboard preference per metric
-
-When multiple sources exist and no override is set, the dashboard uses these defaults:
-
-| Card | Preferred source | Why |
-|---|---|---|
-| `knowledge_concentration`, `hero_dependency_register` | git-fame | Email-keyed, blame-based, canonical |
-| `hidden_coupling_matrix` | code-maat | Most mature coupling heuristic |
-| `code_aging_chart` | git-of-theseus | Snapshot semantics match the card |
-| `burndown_over_time` | hercules | Time-series semantics match the card |
-| `bus_factor_map` | code-maat | Cross-validated with repowise on Health tab |
-| `dead_code` evidence in `abandoned_area_register` | repowise | Only source that emits dead-code findings |
-
-## What to do when sources disagree
-
-1. Open the Health tab and read the `data_sanity` advisory.
-2. Identify which dimension the disagreement is on (file set, author identity, percentage).
-3. Most common root cause: **identity merging gaps**. Check `storage.curation_dir/identity-merges.yaml` — a single contributor showing as two emails will skew per-author metrics in opposite directions across tools.
-4. Second most common: **generated-code differences**. git-fame respects `.gitattributes` `linguist-generated`; code-maat does not. A large generated directory will pull top-owner percentages apart.
-5. Third most common: **bot accounts**. If `dependabot[bot]` or similar is not classified as a bot in `contributor_classification`, its commits will get attributed to whichever tool's heuristic picks them up.
-
-## Override mechanism
-
-There is no per-target source override yet. If you must force a specific source for a card, edit the dashboard SQL in `skills/building-dashboard/templates/observable/src/targets/[target]/<axis>.md` to add a `WHERE source = '...'` clause. The change ships with the dashboard build; it does not modify the warehouse.
+Use the tool references to trace the value into its warehouse column, then query the actual records. Report the scope and explanation of a disagreement with evidence. There is no configurable source-override mechanism.

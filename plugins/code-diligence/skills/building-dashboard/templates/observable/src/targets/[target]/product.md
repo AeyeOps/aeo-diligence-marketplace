@@ -6,7 +6,9 @@ import * as Plot from "npm:@observablehq/plot";
 const target_id = observable.params.target;
 ```
 
-## Hotspot map
+## File change hotspots
+
+Revision counts show change frequency. Complexity is not measured by the git walker.
 
 ```js
 const hotspots = await query(`
@@ -23,10 +25,12 @@ const narr = await narrative(target_id, "product", "hotspot_map");
 ```
 
 ```js
-display(Plot.plot({
+if (!hotspots.length) {
+  display(html`<p>No file-change rows match the current repository classifications. Review <a href="curation.html">Curation</a> and <a href="health.html">Health</a>.</p>`);
+} else display(Plot.plot({
   marks: [
     Plot.dot(hotspots, {
-      x: "revisions", y: "complexity_proxy",
+      x: "revisions", y: d => `${d.repo}/${d.path}`,
       r: d => Math.sqrt(d.hotspot_score),
       fill: d => d.hotspot_score > 100 ? "crimson" : "steelblue",
       stroke: "white", strokeWidth: 0.5,
@@ -34,8 +38,8 @@ display(Plot.plot({
       tip: true,
     }),
   ],
-  x: { label: "Revisions", type: "log" },
-  y: { label: "Complexity proxy" },
+  x: { label: "Revisions" },
+  y: { label: "File", domain: hotspots.slice(0, 20).map(d => `${d.repo}/${d.path}`) },
 }));
 ```
 
@@ -72,7 +76,9 @@ const ages = await query(`
   GROUP BY 1 ORDER BY 1
 `, [target_id]);
 const narr3 = await narrative(target_id, "product", "code_aging_chart");
-display(Plot.plot({
+if (!ages.length) {
+  display(html`<p>No code-age data was collected. See <a href="health.html">Health</a> for git-of-theseus results.</p>`);
+} else display(Plot.plot({
   marks: [Plot.areaY(ages, { x: "bucket_start_year", y: "surviving_loc", fill: "steelblue" })],
   x: { label: "Code vintage year" }, y: { label: "Surviving LOC today" },
 }));
@@ -84,19 +90,22 @@ display(Plot.plot({
 
 ## Burndown over time
 
-(Phase 2 — depends on hercules data in `burndown_series`. Quick-tier shows a placeholder.)
+Code survival over time, grouped by the year the code was introduced. Requires Hercules output.
 
 ```js
-const has_burndown = (await query(`
-  SELECT COUNT(*) AS n FROM burndown_series bs JOIN repos r ON r.repo_id = bs.repo_id
-  WHERE r.target_id = ?
-`, [target_id]))[0].n;
+const burndown = await query(`
+  SELECT snapshot_at, vintage_year, SUM(surviving_loc) AS surviving_loc
+  FROM burndown_series bs JOIN repos r USING (repo_id)
+  WHERE r.target_id = ? GROUP BY snapshot_at, vintage_year ORDER BY snapshot_at, vintage_year
+`, [target_id]);
 const narr4 = await narrative(target_id, "product", "burndown_over_time");
-if (has_burndown > 0) {
-  // Render burndown stacked area; same shape as code aging chart but per-snapshot
-  display(html`<p>(burndown chart here)</p>`);
+if (burndown.length) {
+  display(Plot.plot({
+    marks: [Plot.areaY(burndown, {x: d => new Date(d.snapshot_at), y: "surviving_loc", fill: d => String(d.vintage_year), tip: true})],
+    color: {legend: true, label: "Vintage"}, y: {label: "Surviving LOC"}
+  }));
 } else {
-  display(html`<p><em>Data unavailable until full-tier ingest.</em></p>`);
+  display(html`<p>Code-survival data is unavailable. See <a href="health.html">Health</a> for tool results.</p>`);
 }
 ```
 
@@ -123,7 +132,9 @@ display(Inputs.table(abandoned, { columns: ["repo", "last_commit_at", "last_auth
 
 ---
 
-## Tech-stack inventory + drift
+## Language inventory
+
+Current language totals are available for repositories discovered through GitHub. Historical technology changes are not collected.
 
 ```js
 const stacks = await query(`
@@ -135,3 +146,7 @@ display(Inputs.table(stacks, { columns: ["repo", "language_primary", "languages"
 ```
 
 > ${narr6.body_md}
+
+```js
+display(html`<a href="../${observable.params.target}.html">Target overview</a> · <a href="/index.html">Portfolio</a>`);
+```

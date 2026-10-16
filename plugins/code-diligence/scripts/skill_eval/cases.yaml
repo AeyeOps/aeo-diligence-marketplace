@@ -13,7 +13,7 @@
 cases:
   # --- asking-diligence ---
   - id: ask-slash
-    prompt: "/code-diligence:ask acme why is the payments-service a hotspot?"
+    prompt: "/code-diligence:asking-diligence acme why is the payments-service a hotspot?"
     expected: asking-diligence
   - id: ask-natural
     prompt: "Drill into a specific finding on the acme target's dashboard without recomputing the warehouse."
@@ -24,7 +24,7 @@ cases:
 
   # --- building-dashboard ---
   - id: dash-slash
-    prompt: "/code-diligence:dashboard acme"
+    prompt: "/code-diligence:building-dashboard acme"
     expected: building-dashboard
   - id: dash-natural
     prompt: "Render the Observable dashboard for the acme target."
@@ -35,7 +35,7 @@ cases:
 
   # --- ingesting-target ---
   - id: ingest-slash
-    prompt: "/code-diligence:ingest acme --quick"
+    prompt: "/code-diligence:ingesting-target acme --quick"
     expected: ingesting-target
   - id: ingest-natural
     prompt: "Run the full code-diligence ingest pipeline on the acme org's repos."
@@ -57,7 +57,7 @@ cases:
 
   # --- refreshing-target ---
   - id: refresh-slash
-    prompt: "/code-diligence:refresh acme"
+    prompt: "/code-diligence:refreshing-target acme"
     expected: refreshing-target
   - id: refresh-natural
     prompt: "The acme target is already ingested — I want to pick up new commits and rerun the tools without resetting state."

@@ -1,30 +1,27 @@
 ---
 name: building-dashboard
-description: Build the Observable Framework dashboard for a code-diligence target's warehouse, honoring the privacy gate on the working-pattern card. Use when the user invokes /code-diligence:dashboard, or auto-fired by the PostToolUse hook after a warehouse write.
-argument-hint: <target>
+description: Build or rebuild the Observable dashboard from an existing code-diligence warehouse, including after curation or narrative changes. Does not refresh source repositories.
 allowed-tools: Bash, Read
 ---
 
-The user (or the PostToolUse hook) has invoked `/code-diligence:dashboard <target>`.
+# Build a diligence dashboard
 
-1. Resolve `<target>` to its settings file at `~/.claude/code-diligence-<target>.local.md`. If missing, tell the user and stop.
-2. Read these fields from the settings:
-   - `storage.warehouse_path` — input DuckDB warehouse
-   - `dashboard.output_path` — directory to receive the rendered `dist/`
-   - `heuristics.allow_working_pattern_card` — privacy gate (default `false`); see `references/privacy-gate.md`
-3. Build the dashboard. Pass `--allow-working-pattern` only when the flag is true:
+In Claude Code invoke `/code-diligence:building-dashboard`; in Codex invoke `$building-dashboard`.
 
-       uv run --directory ${CLAUDE_PLUGIN_ROOT} \
-         python -m code_diligence.dashboard.render \
-         --warehouse <warehouse_path> \
-         --output <output_path> \
-         [--allow-working-pattern]
+Read the target's `~/.claude/code-diligence-<target>.local.md`. Resolve the plugin root from the runtime or this skill's location. Pass all three paths and the target ID:
 
-4. On success, tell the user the output directory and the preview command:
+```sh
+uv run --directory "$PLUGIN_ROOT" python -m code_diligence.dashboard.render \
+  --warehouse "$WAREHOUSE_PATH" --output "$OUTPUT_PATH" \
+  --target-id "$TARGET_ID" --curation-dir "$CURATION_DIR"
+```
 
-       python -m http.server -d <output_path>
+Pass `--allow-working-pattern` only when `heuristics.allow_working_pattern_card` is true. The renderer replaces its configured output directory, so use `dashboard.output_path` rather than a source or repository directory.
 
-5. On non-zero exit, surface the stderr verbatim. The renderer fails the build when the template's npm install or `observable build` fails — do not silently retry.
+On success, give the output path and `python -m http.server --directory "$OUTPUT_PATH"` preview command. Inspect the generated target pages in the available browser when UI validation is requested. On failure, report the command's error; do not claim that the prior dashboard is current.
 
-Full renderer argument surface (curation, custom output, env vars): `references/render-args.md`.
-Template layout and what gets copied where: `references/template-layout.md`.
+- [Renderer arguments](references/render-args.md): inputs, output replacement and build behavior.
+- [Privacy setting](references/privacy-gate.md): the existing opt-in contract.
+- [Template layout](references/template-layout.md): page and asset ownership.
+
+Update the owning reference when an observed runtime change makes it inaccurate.

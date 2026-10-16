@@ -21,14 +21,33 @@ def apply_identity(
     For each confirmed pair, write the alias→canonical mapping and a
     canonical→canonical self-mapping so joins always have a base row.
     """
+    destinations: dict[str, set[str]] = {}
+    entries = {}
+    for entry in file.confirmed:
+        destinations.setdefault(entry.alias, set()).add(entry.canonical)
+        entries[entry.alias] = entry
+
+    def resolve(email: str, visiting: frozenset[str] = frozenset()) -> str:
+        if email in visiting:
+            raise ValueError(f"identity merge cycle at {email}")
+        targets = destinations.get(email, {email}) - {email}
+        if not targets:
+            return email
+        roots = {resolve(target, visiting | {email}) for target in targets}
+        if len(roots) != 1:
+            raise ValueError(f"conflicting canonical identities for {email}")
+        return roots.pop()
+
+    resolved = {email: resolve(email) for email in destinations}
+    for canonical in tuple(resolved.values()):
+        resolved[canonical] = canonical
+    rows = [
+        (target_id, email, canonical,
+         entries[email].confidence if email in entries else 1.0,
+         entries[email].source if email in entries else "unchanged")
+        for email, canonical in sorted(resolved.items())
+    ]
     conn.execute("DELETE FROM identity_map WHERE target_id = ?", [target_id])
-    rows: list[tuple[str, str, str, float, str]] = []
-    canonicals_seen: set[str] = set()
-    for e in file.confirmed:
-        rows.append((target_id, e.alias, e.canonical, e.confidence, e.source))
-        canonicals_seen.add(e.canonical)
-    for canon in canonicals_seen:
-        rows.append((target_id, canon, canon, 1.0, "unchanged"))
     if rows:
         conn.executemany(
             "INSERT INTO identity_map (target_id, raw_email, canonical_email, confidence, source) "

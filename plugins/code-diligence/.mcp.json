@@ -13,11 +13,6 @@
         "--warehouse",
         "${DILIGENCE_WAREHOUSE_PATH}"
       ]
-    },
-    "repowise": {
-      "type": "stdio",
-      "command": "repowise",
-      "args": ["mcp"]
     }
   }
 }

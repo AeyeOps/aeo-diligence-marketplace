@@ -1,10 +1,14 @@
 import sys
 from pathlib import Path
-import pytest
+
 import duckdb
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from server import handle_write_narrative, WriteNarrativeError  # noqa: E402
+from server import (  # noqa: E402 - the standalone MCP server is beside this test package
+    WriteNarrativeError,
+    handle_write_narrative,
+)
 
 
 @pytest.fixture
@@ -43,7 +47,7 @@ def test_write_narrative_upserts(warehouse_with_target: Path) -> None:
     conn = duckdb.connect(str(warehouse_with_target), read_only=True)
     rows = conn.execute("SELECT body_md FROM narratives").fetchall()
     conn.close()
-    assert rows == [("v3",)]  # final write wins, single row
+    assert rows == [("v3",)]
 
 
 @pytest.mark.parametrize("axis,tier,err", [

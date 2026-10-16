@@ -8,32 +8,26 @@ Entry point: `src/code_diligence/dashboard/render.py`. Invoked as a module:
 
 | Flag | Type | Purpose |
 |---|---|---|
-| `--warehouse` | path | Input DuckDB file. Copied verbatim into the Observable template at `skills/building-dashboard/templates/observable/src/data/warehouse.duckdb`. |
+| `--warehouse` | path | Input DuckDB file, copied into an isolated temporary Observable project. |
 | `--output` | path | Output directory for the built site (`dist/` is copied here, replacing any prior contents). |
 
 ## Optional arguments
 
 | Flag | Default | Purpose |
 |---|---|---|
-| `--target-id` | (none) | Passed to Observable as `DILIGENCE_TARGET` env var. Drives parameterized `[target]` routes. |
+| `--target-id` | (none) | Associates supplied curation counts with a target. All warehouse targets receive generated routes. |
 | `--curation-dir` | (none) | Passed as `DILIGENCE_CURATION_DIR`. Where the curation page reads `*.yaml` from to compute "needs review" counts. |
 | `--allow-working-pattern` | `false` | Writes `{"allow_working_pattern_card": true}` to `src/data/config.json`. Without this flag the same file is written with `false`. See `references/privacy-gate.md`. |
 
-## Side effects
+## Build behavior
 
-1. Runs `npm install --silent` in the template if `node_modules/` is absent.
-2. Writes `src/data/warehouse.duckdb` (overwrite).
-3. Writes `src/data/config.json` (overwrite — always written, regardless of flag value).
-4. Runs `npm run build --silent` with the env vars above.
-5. Removes any existing `<output_path>` and copies `dist/` to it.
+1. Read the warehouse's target list through a read-only connection.
+2. Run `npm ci --silent` in the template if dependencies are absent.
+3. Copy template source and the warehouse into a temporary project; write its config with the target list and privacy flag.
+4. Build all target routes with `npm run build --silent`.
+5. After a successful build, replace the configured output directory with the generated site.
 
-Steps 2 and 3 are ephemeral build artifacts and are gitignored in the template's `.gitignore`.
-
-## Failure modes
-
-- `npm install` failure → propagates `CalledProcessError`; the renderer does not retry.
-- `npm run build` failure → propagates; usually means an Observable page template has a syntax error, or a SQL query in `*.md` references a table the warehouse doesn't have.
-- Missing input warehouse → `shutil.copy` raises `FileNotFoundError`.
+Source templates and the warehouse are not overwritten. Build failures propagate and leave the previous dashboard in place. An output path containing the input warehouse or template is rejected because replacing it would delete the input.
 
 ## Example calls
 
