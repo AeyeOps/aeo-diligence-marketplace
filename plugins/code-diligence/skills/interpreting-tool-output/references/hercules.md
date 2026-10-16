@@ -19,7 +19,7 @@ The wrapper shells out to:
 - `--burndown` enables the burndown analysis.
 - `--burndown-people` adds per-author burndown alongside the project matrix.
 - YAML is the default output format; the wrapper parses it with `yaml.safe_load`.
-- Timeout: 600s. On non-zero exit it raises `HerculesError`; the `isolated()` envelope in the pipeline converts that to a `tool_failures` row of class `runtime` and the repo moves on.
+- Timeout: 600s. A non-zero exit raises `CalledProcessError`; the `isolated()` envelope records it as a `crash` in `tool_failures` and continues with the other tools.
 
 The wrapper pins to `HERCULES_VERSION = "10.7.2"` for documentation purposes; the binary on PATH must be a compatible release.
 
@@ -34,7 +34,7 @@ Use git-of-theseus for the static "how old is the code now" chart and hercules f
 
 ## Persistence shape
 
-`persist_burndown` reads the multiline numeric matrix in `Burndown.project`. Rows are vintage bands and columns are samples. `Burndown.granularity`, `sampling`, and `tick_size` map bands and samples from `hercules.begin_unix_time` to dates. Values are aggregated to one row per snapshot and vintage year; zero values are omitted. Existing rows for the repository are replaced.
+`persist_burndown` reads the multiline numeric matrix in `Burndown.project`. Rows are time samples and columns are vintage bands. `Burndown.granularity`, `sampling`, and `tick_size` map bands and samples from `hercules.begin_unix_time` to dates. A completed sample is dated at its interval end; the final partial sample is dated at `hercules.end_unix_time`. Values are aggregated to one row per snapshot and vintage year; zero values are omitted. Existing rows for the repository are replaced.
 
 
 ## Caveats

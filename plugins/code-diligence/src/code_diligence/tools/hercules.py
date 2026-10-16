@@ -27,15 +27,16 @@ def persist_burndown(conn: duckdb.DuckDBPyConnection, *, repo_id: str, payload: 
     burndown = payload["Burndown"]
     tick_size = int(burndown["tick_size"])
     begin = int(payload["hercules"]["begin_unix_time"])
+    end = datetime.fromtimestamp(int(payload["hercules"]["end_unix_time"]), UTC)
     start = datetime.fromtimestamp(begin - begin % tick_size, UTC)
     sampling = int(burndown["sampling"])
     granularity = int(burndown["granularity"])
     matrix = [[int(value) for value in line.split()] for line in burndown["project"].splitlines() if line.strip()]
     totals: dict[tuple[datetime, int], int] = defaultdict(int)
-    for vintage_index, samples in enumerate(matrix):
-        vintage = (start + timedelta(seconds=vintage_index * granularity * tick_size)).year
-        for sample_index, loc in enumerate(samples):
-            snapshot = start + timedelta(seconds=(sample_index + 1) * sampling * tick_size)
+    for sample_index, vintages in enumerate(matrix):
+        snapshot = min(start + timedelta(seconds=(sample_index + 1) * sampling * tick_size), end)
+        for vintage_index, loc in enumerate(vintages):
+            vintage = (start + timedelta(seconds=vintage_index * granularity * tick_size)).year
             totals[snapshot, vintage] += loc
     conn.execute("DELETE FROM burndown_series WHERE repo_id = ?", [repo_id])
     rows = [(repo_id, snapshot, vintage, loc) for (snapshot, vintage), loc in sorted(totals.items()) if loc]

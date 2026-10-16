@@ -66,7 +66,6 @@ if (couplings.length) {
   display(Inputs.table(couplings, {
     columns: ["repo_id", "file_a", "file_b", "support_pct", "lift"],
     header: {repo_id: "Repository", file_a: "File A", file_b: "File B", support_pct: "Support", lift: "Lift"},
-    width: {repo_id: 160, file_a: 200, file_b: 200, support_pct: 75, lift: 60},
     format: {
       repo_id: value => html`<span style="white-space:normal;overflow-wrap:anywhere;">${value}</span>`,
       file_a: value => html`<span style="white-space:normal;overflow-wrap:anywhere;">${value}</span>`,
@@ -112,21 +111,27 @@ if (!ages.length) {
 
 ## Burndown over time
 
-Code survival over time, grouped by the year the code was introduced. Requires Hercules output.
+Code survival over time for each repository, grouped by the year the code was introduced. Repositories have different sample dates. Requires Hercules output.
 
 ```js
 const burndown = await query(`
-  SELECT snapshot_at, vintage_year, SUM(surviving_loc) AS surviving_loc
+  SELECT r.repo_id, r.name AS repo, snapshot_at, vintage_year, SUM(surviving_loc) AS surviving_loc
   FROM burndown_series bs JOIN repos r USING (repo_id)
-  WHERE r.target_id = ? GROUP BY snapshot_at, vintage_year ORDER BY snapshot_at, vintage_year
+  WHERE r.target_id = ? GROUP BY r.repo_id, r.name, snapshot_at, vintage_year
+  ORDER BY r.name, snapshot_at, vintage_year
 `, [target_id]);
 const narr4 = await narrative(target_id, "product", "burndown_over_time");
 if (burndown.length) {
-  display(Plot.plot({
-    marks: [Plot.areaY(burndown, {x: d => new Date(d.snapshot_at), y: "surviving_loc", fill: d => String(d.vintage_year), tip: true})],
-    color: {type: "ordinal", legend: true, label: "Vintage"}, y: {label: "Surviving LOC"},
-    marginLeft: 80,
-  }));
+  for (const repo_id of new Set(burndown.map(row => row.repo_id))) {
+    const series = burndown.filter(row => row.repo_id === repo_id);
+    display(html`<h3>${series[0].repo}</h3>`);
+    display(Plot.plot({
+      marks: [Plot.areaY(series, {x: d => new Date(d.snapshot_at), y: "surviving_loc", fill: d => String(d.vintage_year), tip: true})],
+      color: {type: "ordinal", legend: true, label: "Vintage"}, y: {label: "Surviving LOC"},
+      marginLeft: 80,
+      height: 280,
+    }));
+  }
 } else {
   display(html`<p>Code-survival data is unavailable. See <a href="health.html">Health</a> for tool results.</p>`);
 }
