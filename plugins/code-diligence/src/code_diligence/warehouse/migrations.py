@@ -26,10 +26,23 @@ def _preserve_repowise_hits(conn: duckdb.DuckDBPyConnection) -> None:
     """)
 
 
+def _drop_pr_review_fields(conn: duckdb.DuckDBPyConnection) -> None:
+    """Remove PR review fields; GitHub review records do not show review done outside GitHub."""
+    columns = ("review_latency_hours", "num_reviewers", "approvals", "lines_changed", "was_self_merged")
+    conn.execute("BEGIN TRANSACTION")
+    for column in columns:
+        conn.execute(f"ALTER TABLE pr_metrics DROP COLUMN IF EXISTS {column}")
+    conn.execute(
+        "INSERT INTO schema_version (version) SELECT 4 WHERE NOT EXISTS (SELECT 1 FROM schema_version WHERE version = 4)"
+    )
+    conn.execute("COMMIT")
+
+
 MIGRATIONS: dict[int, Callable[[duckdb.DuckDBPyConnection], None]] = {
     1: init_schema,
     2: init_schema,
     3: _preserve_repowise_hits,
+    4: _drop_pr_review_fields,
 }
 
 

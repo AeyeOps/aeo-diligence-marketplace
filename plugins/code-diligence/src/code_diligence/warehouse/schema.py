@@ -6,7 +6,7 @@ between versions live in `migrations.py`.
 """
 import duckdb
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 DDL_STATEMENTS: list[str] = [
 
@@ -208,11 +208,6 @@ DDL_STATEMENTS: list[str] = [
       opened_at      TIMESTAMP,
       merged_at      TIMESTAMP,
       closed_at      TIMESTAMP,
-      review_latency_hours DOUBLE,
-      num_reviewers  INTEGER,
-      approvals      INTEGER,
-      lines_changed  INTEGER,
-      was_self_merged BOOLEAN,
       PRIMARY KEY (repo_id, pr_number)
     )
     """,

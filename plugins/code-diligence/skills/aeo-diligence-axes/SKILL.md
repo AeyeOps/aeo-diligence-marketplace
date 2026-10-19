@@ -7,7 +7,7 @@ code-diligence organizes findings along three axes. Pick the per-axis reference 
 
 - [people](references/people.md) — 5 cards, primarily git-derived (bus factor, knowledge concentration, contributor activity, communication graph, hero register)
 - [product](references/product.md) — 6 cards, code-derived (hotspots, hidden coupling, code aging, burndown, abandoned areas, language inventory)
-- [process](references/process.md) — 5 cards, GitHub-platform-dependent (delivery indicators, review discipline, CI health, issue triage, working-pattern signals)
+- [process](references/process.md) — 4 cards, GitHub-platform-dependent (delivery indicators, CI health, issue triage, working-pattern signals)
 
 ## Narration contract
 
@@ -24,11 +24,11 @@ The `axis_confidence` row's `confidence_class` is `high`, `medium`, or `low` bas
 
 | Range | Class | Means |
 |---|---|---|
-| ≥ 80% | high | At least 80% of expected tables have rows |
-| 40–79% | medium | 40–79% of expected tables have rows |
-| < 40% | low | Fewer than 40% of expected tables have rows |
+| ≥ 80% | high | At least 80% of expected sources are present |
+| 40–79% | medium | 40–79% of expected sources are present |
+| < 40% | low | Fewer than 40% of expected sources are present |
 
-This is a table-presence score, not repository coverage, result accuracy, or agreement between tools. Expected tables are defined in `src/code_diligence/narration/confidence.py`; inspect Health for missing inputs.
+A source is present when its table has rows; a GitHub table also counts when its collector ran this refresh without a current failure, because an empty result there means the feature is unused. This is a presence score, not repository coverage, result accuracy, or agreement between tools. Expected tables are defined in `src/code_diligence/narration/confidence.py`; inspect Health for missing inputs.
 
 ## Source-of-truth links
 

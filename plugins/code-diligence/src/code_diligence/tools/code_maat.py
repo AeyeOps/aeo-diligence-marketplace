@@ -24,7 +24,7 @@ def build_log_dump(repo: Path, *, out: Path) -> Path:
     """Build the git log dump in code-maat's expected format."""
     proc = subprocess.run(
         ["git", "-C", str(repo), "log", "--numstat", "--date=short", "--no-renames",
-         "--pretty=format:--%h--%ad--%aN"],
+         "--pretty=format:--%h--%ad--%aE"],
         capture_output=True, text=True, check=True, timeout=300,
     )
     out.write_text(proc.stdout)

@@ -244,7 +244,16 @@ def ingest(
                     issues_data=s.sources.github_platform.issues_data,
                 )
 
-        compute_axis_confidence(conn, target_id=s.target_id)
+        platform = s.sources.github_platform
+        collected = frozenset(
+            table for table, requested in (
+                ("pr_metrics", platform.pr_data),
+                ("actions_metrics", platform.actions_data),
+                ("release_metrics", platform.pr_data or platform.actions_data),
+                ("issue_metrics", platform.issues_data),
+            ) if platform_pass and requested
+        )
+        compute_axis_confidence(conn, target_id=s.target_id, collected=collected)
 
         load_taxonomy_into_warehouse(conn)
 

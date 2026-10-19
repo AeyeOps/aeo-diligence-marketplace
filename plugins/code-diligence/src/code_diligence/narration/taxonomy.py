@@ -37,11 +37,9 @@ TAXONOMY: tuple[SectionDef, ...] = (
     SectionDef("product", "tech_stack_drift", "Technology inventory",
                "Current GitHub primary language per repository. Historical technology changes and language LOC totals are not collected."),
     SectionDef("process", "dora_quadrant", "Repository delivery indicators",
-               "Releases in the last 30 days, average PR cycle time and workflow failure fraction. These are not DORA deployment or incident metrics."),
-    SectionDef("process", "review_discipline", "Review discipline",
-               "PR review latency, distinct reviewer count, self-merge fraction among merged PRs with known merger, and merged PRs without approvals."),
+               "GitHub releases in the last 30 days, average PR cycle time and workflow failure fraction. These are not DORA deployment or incident metrics."),
     SectionDef("process", "ci_health", "CI health",
-               "Completed workflow outcomes and durations by repository and workflow."),
+               "Completed workflow outcomes and durations by repository and workflow file."),
     SectionDef("process", "issue_triage_health", "Issue triage health",
                "Average time to first issue comment and count of issues still open after 90 days. A first comment is not necessarily a maintainer response."),
     SectionDef("process", "working_pattern_signals", "Working pattern signals",
@@ -56,6 +54,9 @@ def load_taxonomy_into_warehouse(conn: duckdb.DuckDBPyConnection) -> None:
     conn.executemany(
         "INSERT INTO axes_taxonomy (axis, section_key, title, description) VALUES (?, ?, ?, ?)",
         rows,
+    )
+    conn.execute(
+        "DELETE FROM narratives WHERE (axis, section_key) NOT IN (SELECT axis, section_key FROM axes_taxonomy)"
     )
 
 

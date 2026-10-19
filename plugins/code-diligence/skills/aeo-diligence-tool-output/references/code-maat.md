@@ -18,7 +18,7 @@ Two-step shell flow per repo:
 1. **Build the log dump** via raw `git log` (not pygit2):
 
        git -C <repo> log --numstat --date=short --no-renames \
-           --pretty=format:--%h--%ad--%aN
+           --pretty=format:--%h--%ad--%aE
 
    `build_log_dump` writes the captured stdout to a temporary file. Timeout: 300s.
 
@@ -39,7 +39,7 @@ Two-step shell flow per repo:
 
 - **No JVM tuning.** The wrapper invokes `java -jar` with default heap; there is no `-Xmx` flag or `CODE_MAAT_XMX` env var. On large monorepos that OOM, increase heap via `JAVA_TOOL_OPTIONS` before re-running, or add the flag in `run_code_maat_analysis`.
 - **No analysis batching.** The wrapper invokes one JVM per analysis (three JVM starts per repo). Java startup overhead is real; treat code-maat as one of the more expensive tools per repo.
-- **Author normalization is name-based.** code-maat sees `--pretty=format:...--%aN` and never sees emails. The `top_owner_email` column gets a display name today; map to canonical email via `identity_map` at the dashboard layer if you need the join.
+- **Authors are commit emails.** code-maat sees `--pretty=format:...--%aE`, so `top_owner_email` holds the commit email and maps to a canonical identity through `identity_map`.
 - **`--no-renames`** is set on the underlying `git log`, matching code-maat's expectation. Renamed files appear as separate entities.
 
 ## When to trust it

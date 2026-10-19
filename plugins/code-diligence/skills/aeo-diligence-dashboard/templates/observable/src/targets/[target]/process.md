@@ -43,35 +43,6 @@ display(Inputs.table(dora.map(row => ({
 
 ---
 
-## Review discipline
-
-```js
-const review = await query(`
-  SELECT r.name AS repo,
-         AVG(pm.review_latency_hours) AS avg_review_latency_h,
-         AVG(pm.num_reviewers) AS avg_reviewers,
-         AVG(CASE WHEN pm.merged_at IS NULL OR pm.was_self_merged IS NULL THEN NULL WHEN pm.was_self_merged THEN 1.0 ELSE 0.0 END) AS self_merge_rate,
-         AVG(CASE WHEN pm.merged_at IS NULL THEN NULL WHEN pm.approvals = 0 THEN 1.0 ELSE 0.0 END) AS merge_without_review_rate
-  FROM pr_metrics pm JOIN repos r ON r.repo_id = pm.repo_id
-  WHERE r.target_id = ? GROUP BY r.repo_id, r.name
-`, [target_id]);
-const narr2 = await narrative(target_id, "process", "review_discipline");
-display(Inputs.table(review.map(row => ({
-  ...row,
-  self_merge_rate: row.self_merge_rate === null ? "Not established" : row.self_merge_rate,
-  merge_without_review_rate: row.merge_without_review_rate === null ? "Not established" : row.merge_without_review_rate,
-})), {
-  format: {
-    self_merge_rate: formatRate,
-    merge_without_review_rate: formatRate,
-  },
-}));
-```
-
-> ${narr2.body}
-
----
-
 ## CI health
 
 ```js

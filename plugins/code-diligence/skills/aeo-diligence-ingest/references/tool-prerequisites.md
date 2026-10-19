@@ -91,7 +91,7 @@ Repowise 0.57.0 also spawns a fresh duplication worker at 1,000 parsed files. Th
 
 ## How the pipeline records missing tools
 
-Each tool runs inside the `isolated()` envelope (`src/code_diligence/ingest/isolation.py`). On `FileNotFoundError` (missing binary) or non-zero exit, a `tool_failures` row is written and the pipeline moves on. After every run, `update_tooling_versions` writes `{tool_name: version}` JSON into `targets.tooling_versions`, recording each absent tool as `"not-installed"`. Inspect via:
+Each tool runs inside the `isolated()` envelope (`src/code_diligence/ingest/isolation.py`). On `FileNotFoundError` (missing binary) or non-zero exit, a `tool_failures` row is written and the pipeline moves on. When the tool later succeeds for that repository, its earlier failure rows are deleted, so `tool_failures` and Health show only current failures. After every run, `update_tooling_versions` writes `{tool_name: version}` JSON into `targets.tooling_versions`, recording each absent tool as `"not-installed"`. Inspect via:
 
     SELECT tooling_versions FROM targets WHERE target_id = '<target>';
 

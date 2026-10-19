@@ -44,5 +44,9 @@ def isolated(
         conn.execute("ROLLBACK")
         raise
     else:
+        conn.execute(
+            "DELETE FROM tool_failures WHERE target_id = ? AND repo_id IS NOT DISTINCT FROM ? AND tool = ?",
+            [target_id, repo_id, tool],
+        )
         conn.execute("COMMIT")
         return result

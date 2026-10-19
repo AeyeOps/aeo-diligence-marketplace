@@ -16,13 +16,13 @@
 
 ## What you get
 
-One **Observable dashboard** per target, covering **16 cards** across three diligence axes:
+One **Observable dashboard** per target, covering **15 cards** across three diligence axes:
 
 | Axis | Cards |
 |---|---|
 | **People** | bus-factor map · knowledge concentration · contributor activity timeline · communication graph · hero-dependency register |
 | **Product** | hotspot map · hidden coupling · code-aging chart · burndown over time · abandoned-area register · language inventory |
-| **Process** | Repository delivery indicators · review discipline · CI health · issue-triage health · working-pattern signals *(privacy-gated, off by default)* |
+| **Process** | Repository delivery indicators · CI health · issue-triage health · working-pattern signals *(privacy-gated, off by default)* |
 
 With the target's warehouse MCP connected, the native narrator adds evidence-grounded prose to each card. A read-only chat agent answers follow-up questions ("why is the payments-service a hotspot?") with citations back to the warehouse and the repo.
 
@@ -129,7 +129,7 @@ If you're new to diligence-grade code analysis, the per-axis explainers are the 
 
 - 👥 [**People axis**](skills/aeo-diligence-axes/references/people.md) — bus factor, knowledge concentration, hero dependencies
 - 🧱 [**Product axis**](skills/aeo-diligence-axes/references/product.md) — hotspots, coupling, code aging, abandoned areas
-- ⚙️ [**Process axis**](skills/aeo-diligence-axes/references/process.md) — delivery indicators, review discipline, CI health
+- ⚙️ [**Process axis**](skills/aeo-diligence-axes/references/process.md) — delivery indicators, CI health
 
 When a card shows "low confidence," it means the underlying source data was incomplete — usually because an optional tool wasn't installed or the GitHub token lacked scope. The dashboard's Health page tells you exactly which.
 

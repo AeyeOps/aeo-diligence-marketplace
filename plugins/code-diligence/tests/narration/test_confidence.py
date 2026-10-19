@@ -24,7 +24,7 @@ def test_all_axes_low_with_only_commits(tmp_path: Path) -> None:
             "INSERT INTO commits_fact (repo_id, commit_sha, author_email, author_date) "
             "VALUES ('acme/api', 'abc123', 'dev@acme.com', '2024-01-01')"
         )
-        compute_axis_confidence(conn, target_id="acme")
+        compute_axis_confidence(conn, target_id="acme", collected=frozenset())
         rows = conn.execute(
             "SELECT axis, confidence_class, signal_completeness_pct FROM axis_confidence "
             "WHERE target_id='acme' ORDER BY axis"
@@ -52,7 +52,7 @@ def test_people_axis_medium_with_commits_and_ownership(tmp_path: Path) -> None:
             "INSERT INTO ownership_share (repo_id, author_email, owned_loc, owned_files, source) "
             "VALUES ('acme/api', 'dev@acme.com', 1000, 10, 'git-fame')"
         )
-        compute_axis_confidence(conn, target_id="acme")
+        compute_axis_confidence(conn, target_id="acme", collected=frozenset())
         row = conn.execute(
             "SELECT confidence_class, signal_completeness_pct FROM axis_confidence "
             "WHERE target_id='acme' AND axis='people'"
@@ -78,7 +78,7 @@ def test_people_axis_high_with_all_sources(tmp_path: Path) -> None:
             "INSERT INTO contributor_classification (target_id, author_email, class, confidence, signals, source) "
             "VALUES ('acme', 'dev@acme.com', 'fte', 0.9, '{}', 'yaml')"
         )
-        compute_axis_confidence(conn, target_id="acme")
+        compute_axis_confidence(conn, target_id="acme", collected=frozenset())
         row = conn.execute(
             "SELECT confidence_class FROM axis_confidence WHERE target_id='acme' AND axis='people'"
         ).fetchone()
@@ -90,8 +90,8 @@ def test_compute_axis_confidence_is_idempotent(tmp_path: Path) -> None:
     db = tmp_path / "t.duckdb"
     with open_warehouse(db) as conn:
         _setup_base(conn, "acme", "acme/api")
-        compute_axis_confidence(conn, target_id="acme")
-        compute_axis_confidence(conn, target_id="acme")
+        compute_axis_confidence(conn, target_id="acme", collected=frozenset())
+        compute_axis_confidence(conn, target_id="acme", collected=frozenset())
         n = conn.execute(
             "SELECT COUNT(*) FROM axis_confidence WHERE target_id='acme'"
         ).fetchone()[0]
