@@ -1,6 +1,6 @@
 # Warehouse and asker boundary
 
-The warehouse MCP opens the `--warehouse` path passed at server startup. The Claude Code plugin resolves that argument from `DILIGENCE_WAREHOUSE_PATH`; set the variable before starting its MCP server. After an initial ingest, start or reconnect the server with that warehouse path. Changing a child shell's environment does not change an already running MCP server.
+The warehouse MCP opens the `--warehouse` path passed at server startup. The Claude Code plugin resolves that argument from `DILIGENCE_WAREHOUSE_PATH`; set the variable before starting its MCP server. After an initial ingest, start or reconnect the server with that warehouse path. Changing a child shell's environment does not change an already running MCP server, and a server started before its configuration changed keeps its old command until it restarts. After changing the server's configuration, reconnect it and confirm its Python runs from `$PLUGIN_ROOT/.venv`.
 
 Before answering, query `targets` through the native MCP to confirm the requested target is in the connected warehouse. Never substitute another target's data. If the server needs reconnecting, follow [prerequisite coverage](../../aeo-diligence-ingest/references/tool-prerequisites.md#explain-and-resolve-coverage-gaps): explain the missing query/narration capability and remedy, carry out authorized configuration or reconnection, and verify the recovered connection. A configuration entry or standalone protocol probe does not establish that the current agent can use its tools.
 
