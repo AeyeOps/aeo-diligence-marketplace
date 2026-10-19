@@ -50,7 +50,7 @@ When no external traffic is required, verify the actual analyzer invocation in t
 | Binary | How to install | Skip behavior |
 |---|---|---|
 | `git` | system package manager | Hard fail — the walker cannot run |
-| `uv` | `brew install uv` / `pipx install uv` | Hard fail — entry point is `uv run` |
+| `uv` | `brew install uv` / `pipx install uv` | Hard fail — `bin/run` starts every command through `uv run` |
 
 ## Optional analyzers used by `--quick` and `--full`
 

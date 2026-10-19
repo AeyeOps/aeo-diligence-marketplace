@@ -2,9 +2,8 @@
   "mcpServers": {
     "diligence-warehouse": {
       "type": "stdio",
-      "command": "uv",
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/run",
       "args": [
-        "run",
         "--directory",
         "${CLAUDE_PLUGIN_ROOT}/mcp/diligence-warehouse",
         "python",

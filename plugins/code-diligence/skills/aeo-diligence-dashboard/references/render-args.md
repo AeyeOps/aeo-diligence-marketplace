@@ -33,7 +33,7 @@ Source templates and the warehouse are not overwritten. Build failures propagate
 
 Quick-tier render with curation counts, privacy gate off:
 
-    uv run --directory "$PLUGIN_ROOT" \
+    "$PLUGIN_ROOT/bin/run" \
       python -m code_diligence.dashboard.render \
       --warehouse ~/data/code-diligence/acme/warehouse.duckdb \
       --output ~/data/code-diligence/acme/dashboard \
@@ -42,7 +42,7 @@ Quick-tier render with curation counts, privacy gate off:
 
 Same, with working-pattern card enabled:
 
-    uv run --directory "$PLUGIN_ROOT" \
+    "$PLUGIN_ROOT/bin/run" \
       python -m code_diligence.dashboard.render \
       --warehouse ~/data/code-diligence/acme/warehouse.duckdb \
       --output ~/data/code-diligence/acme/dashboard \

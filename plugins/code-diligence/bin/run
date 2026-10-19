@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+unset UV_PROJECT_ENVIRONMENT
+exec uv run --project "$(dirname "$(dirname "$(readlink -f "$0")")")" "$@"

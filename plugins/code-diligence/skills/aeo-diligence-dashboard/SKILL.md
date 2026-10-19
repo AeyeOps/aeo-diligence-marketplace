@@ -11,7 +11,7 @@ In Claude Code invoke `/code-diligence:aeo-diligence-dashboard` from the plugin 
 Read the target's `diligence.local.md` in its target folder. [aeo-diligence-ingest](../aeo-diligence-ingest/SKILL.md) step 1 locates the folder and step 3 resolves `$PLUGIN_ROOT`. Pass all three paths and the target ID:
 
 ```sh
-uv run --directory "$PLUGIN_ROOT" python -m code_diligence.dashboard.render \
+"$PLUGIN_ROOT/bin/run" python -m code_diligence.dashboard.render \
   --warehouse "$WAREHOUSE_PATH" --output "$OUTPUT_PATH" \
   --target-id "$TARGET_ID" --curation-dir "$CURATION_DIR"
 ```

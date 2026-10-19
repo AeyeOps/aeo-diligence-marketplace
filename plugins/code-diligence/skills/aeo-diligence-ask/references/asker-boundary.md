@@ -4,14 +4,14 @@ The warehouse MCP opens the `--warehouse` path passed at server startup. The Cla
 
 Before answering, query `targets` through the native MCP to confirm the requested target is in the connected warehouse. Never substitute another target's data. If the server needs reconnecting, follow [prerequisite coverage](../../aeo-diligence-ingest/references/tool-prerequisites.md#explain-and-resolve-coverage-gaps): explain the missing query/narration capability and remedy, carry out authorized configuration or reconnection, and verify the recovered connection. A configuration entry or standalone protocol probe does not establish that the current agent can use its tools.
 
-In Codex, or in Claude Code without the plugin, resolve the actual installed `uv` executable and plugin root, then configure the existing server for the target:
+In Codex, or in Claude Code without the plugin, resolve the plugin root, then configure the existing server for the target. The launcher runs `uv` from the server's PATH and keeps the server in the plugin's own environment:
 
 ```sh
-codex mcp add diligence-warehouse -- "$(command -v uv)" run \
+codex mcp add diligence-warehouse -- "$PLUGIN_ROOT/bin/run" \
   --directory "$PLUGIN_ROOT/mcp/diligence-warehouse" \
   python -m server --warehouse "$WAREHOUSE_PATH"
 
-claude mcp add --scope local diligence-warehouse -- "$(command -v uv)" run \
+claude mcp add --scope local diligence-warehouse -- "$PLUGIN_ROOT/bin/run" \
   --directory "$PLUGIN_ROOT/mcp/diligence-warehouse" \
   python -m server --warehouse "$WAREHOUSE_PATH"
 ```

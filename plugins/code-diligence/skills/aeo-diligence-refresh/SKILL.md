@@ -15,7 +15,7 @@ Before refresh, follow [prerequisite coverage](../aeo-diligence-ingest/reference
 Run the existing ingest path with `--full`:
 
 ```sh
-uv run --directory "$PLUGIN_ROOT" code-diligence ingest "$SETTINGS_PATH" --full
+"$PLUGIN_ROOT/bin/run" code-diligence ingest "$SETTINGS_PATH" --full
 ```
 
 GitHub sources are fetched and fast-forwarded before analysis. Local checkouts with an origin are fetched and fast-forwarded too; a divergent checkout is reported, never reset. Analyst entries with `source: analyst` remain authoritative; heuristic entries are recomputed.
