@@ -2,6 +2,7 @@
 
 ```js
 import {query, narrative, axisConfidence} from "../../data/warehouse.js";
+import {abandonedRepos, codeAge, couplings, hotspots} from "../../data/metrics.js";
 import {confidenceLine, count, day, pct, targetName, wrap} from "../../data/labels.js";
 import * as Plot from "npm:@observablehq/plot";
 const target_id = observable.params.target;
@@ -16,16 +17,9 @@ const name = await targetName(target_id);
 <p class="finding">${narr.body}</p>
 
 ```js
-const hotspots = await query(`
-  SELECT r.name AS repo, fm.path, fm.revisions
-  FROM file_metrics fm
-  JOIN repos r ON r.repo_id = fm.repo_id
-  JOIN repo_classification rc ON rc.repo_id = fm.repo_id
-  WHERE r.target_id = ? AND rc.class IN ('production', 'tooling')
-  ORDER BY fm.revisions DESC, fm.path LIMIT 25
-`, [target_id]);
+const hotspot_rows = await hotspots(target_id);
 const narr = await narrative(target_id, "product", "hotspot_map");
-display(Inputs.table(hotspots, {
+display(Inputs.table(hotspot_rows, {
   columns: ["path", "repo", "revisions"],
   header: {path: "File", repo: "Repository", revisions: "Changes"},
   format: {path: wrap, revisions: count},
@@ -42,15 +36,9 @@ display(Inputs.table(hotspots, {
 <p class="finding">${narr2.body}</p>
 
 ```js
-const couplings = await query(`
-  SELECT r.name AS repo, cp.file_a, cp.file_b, cp.co_change_count, cp.support_pct, cp.lift
-  FROM coupling_pairs cp
-  JOIN repos r ON r.repo_id = cp.repo_id
-  WHERE r.target_id = ? AND cp.lift > 1.5 AND cp.support_pct > 0.05
-  ORDER BY cp.lift DESC LIMIT 100
-`, [target_id]);
+const coupling_rows = await couplings(target_id);
 const narr2 = await narrative(target_id, "product", "hidden_coupling_matrix");
-if (couplings.length) display(Inputs.table(couplings, {
+if (coupling_rows.length) display(Inputs.table(coupling_rows, {
   columns: ["file_a", "file_b", "repo", "co_change_count", "support_pct", "lift"],
   header: {file_a: "File", file_b: "Changes with", repo: "Repository", co_change_count: "Shared commits", support_pct: "Share of commits", lift: "Lift"},
   format: {file_a: wrap, file_b: wrap, co_change_count: count, support_pct: pct, lift: value => value.toFixed(1)},
@@ -66,13 +54,7 @@ if (couplings.length) display(Inputs.table(couplings, {
 <p class="finding">${narr3.body}</p>
 
 ```js
-const ages = await query(`
-  SELECT r.name AS repo, cab.bucket_start_year AS year, SUM(cab.surviving_loc) AS surviving_loc
-  FROM code_age_buckets cab
-  JOIN repos r ON r.repo_id = cab.repo_id
-  WHERE r.target_id = ?
-  GROUP BY 1, 2 ORDER BY 2, 1
-`, [target_id]);
+const ages = await codeAge(target_id);
 const narr3 = await narrative(target_id, "product", "code_aging_chart");
 if (ages.length) display(Plot.plot({
   marks: [
@@ -129,14 +111,7 @@ for (const repo of new Set(burndown.map(row => row.repo))) {
 <p class="finding">${narr5.body}</p>
 
 ```js
-const abandoned = await query(`
-  SELECT r.name AS repo, r.last_commit_at, r.is_archived,
-         (SELECT cf.author_email FROM commits_fact cf WHERE cf.repo_id = r.repo_id ORDER BY cf.author_date DESC LIMIT 1) AS last_author,
-         (SELECT cf.message_first_line FROM commits_fact cf WHERE cf.repo_id = r.repo_id ORDER BY cf.author_date DESC LIMIT 1) AS last_msg
-  FROM repos r JOIN repo_classification rc ON rc.repo_id = r.repo_id
-  WHERE r.target_id = ? AND rc.class = 'abandoned'
-  ORDER BY r.last_commit_at ASC
-`, [target_id]);
+const abandoned = await abandonedRepos(target_id);
 const narr5 = await narrative(target_id, "product", "abandoned_area_register");
 if (abandoned.length) display(Inputs.table(abandoned, {
   columns: ["repo", "last_commit_at", "last_author", "last_msg"],

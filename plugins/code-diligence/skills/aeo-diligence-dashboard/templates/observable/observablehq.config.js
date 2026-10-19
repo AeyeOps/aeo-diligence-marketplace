@@ -33,7 +33,12 @@ export default {
 .finding { font-size: 1.05rem; line-height: 1.55; max-width: 72ch; margin: 0.5rem 0 1rem; }
 .caption { color: var(--theme-foreground-muted); font-size: 0.85rem; max-width: 72ch; margin: 0.5rem 0 0; }
 .wrap { white-space: normal; overflow-wrap: anywhere; }
-.headlines { display: grid; grid-template-columns: minmax(9rem, 14rem) minmax(0, 72ch); gap: 0 1.5rem; margin: 0; }
+.measures { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1rem 1.5rem; max-width: 960px; margin: 0 0 1.25rem; }
+#observablehq-main .measure { display: flex; flex-direction: column; gap: 0.15rem; padding-top: 0.65rem; border-top: 1px solid var(--theme-foreground-faintest); color: inherit; text-decoration: none; }
+.measure-label, .measure-note { color: var(--theme-foreground-muted); font-size: 0.85rem; }
+.measure-value { color: var(--theme-foreground); font-size: 1.6rem; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.measure:hover .measure-label, .measure:focus-visible .measure-label { color: var(--theme-foreground-focus); text-decoration: underline; }
+.headlines { display: grid; grid-template-columns: minmax(9rem, 14rem) minmax(0, 72ch); gap: 0 1.5rem; margin: 1.25rem 0 0; }
 .headlines dt, .headlines dd { padding: 0.65rem 0; border-top: 1px solid var(--theme-foreground-faintest); }
 .headlines dt { font-weight: 600; }
 .headlines dd { margin: 0; line-height: 1.5; }

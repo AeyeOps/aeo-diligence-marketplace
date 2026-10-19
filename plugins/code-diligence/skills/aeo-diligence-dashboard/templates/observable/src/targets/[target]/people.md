@@ -2,6 +2,7 @@
 
 ```js
 import {query, narrative, axisConfidence} from "../../data/warehouse.js";
+import {busFactor, heroFiles} from "../../data/metrics.js";
 import {CLASS_ORDER, classLabel, confidenceLine, count, personNames, pct, targetName, wrap} from "../../data/labels.js";
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
@@ -18,31 +19,7 @@ const nameOf = await personNames(target_id);
 <p class="finding">${narr.body}</p>
 
 ```js
-const bus_factor_rows = await query(`
-  WITH ownership AS (
-    SELECT r.repo_id, r.name AS repo,
-           COALESCE(im.canonical_email, os.author_email) AS author,
-           SUM(os.owned_loc) AS owned_loc,
-           cc.class AS contributor_class
-    FROM repos r
-    JOIN ownership_share os ON os.repo_id = r.repo_id AND os.source = 'git-fame'
-    LEFT JOIN identity_map im ON im.target_id = r.target_id AND im.raw_email = os.author_email
-    LEFT JOIN contributor_classification cc ON cc.target_id = r.target_id AND cc.author_email = COALESCE(im.canonical_email, os.author_email)
-    JOIN repo_classification rc ON rc.repo_id = r.repo_id
-    WHERE r.target_id = ? AND rc.class IN ('production', 'tooling')
-    GROUP BY r.repo_id, r.name, author, cc.class
-  ), totals AS (
-    SELECT repo_id, repo, SUM(owned_loc) AS total_loc FROM ownership GROUP BY repo_id, repo
-  ), ranked AS (
-    SELECT *, ROW_NUMBER() OVER (PARTITION BY repo_id ORDER BY owned_loc DESC, author) AS author_rank,
-           SUM(owned_loc) OVER (PARTITION BY repo_id ORDER BY owned_loc DESC, author) AS cumulative_loc
-    FROM ownership WHERE contributor_class = 'fte'
-  )
-  SELECT totals.repo, COUNT(ranked.author) AS confirmed_ftes,
-         MIN(CASE WHEN cumulative_loc >= totals.total_loc * 0.5 AND totals.total_loc > 0 THEN author_rank END) AS bus_factor_estimate
-  FROM totals LEFT JOIN ranked ON ranked.repo_id = totals.repo_id
-  GROUP BY totals.repo_id, totals.repo ORDER BY bus_factor_estimate, totals.repo
-`, [target_id]);
+const bus_factor_rows = await busFactor(target_id);
 const narr = await narrative(target_id, "people", "bus_factor_map");
 display(Inputs.table(bus_factor_rows.map(row => ({...row, bus_factor_estimate: row.bus_factor_estimate ?? "Not established"})), {
   columns: ["repo", "confirmed_ftes", "bus_factor_estimate"],
@@ -188,17 +165,7 @@ display(graph.node());
 <p class="finding">${narr5.body}</p>
 
 ```js
-const heroes = await query(`
-  SELECT r.name AS repo, fm.path AS file,
-         COALESCE(im.canonical_email, fm.top_owner_email) AS owner,
-         fm.top_owner_pct AS owned_pct, fm.revisions
-  FROM file_metrics fm
-  JOIN repos r ON r.repo_id = fm.repo_id
-  LEFT JOIN identity_map im ON im.target_id = r.target_id AND im.raw_email = fm.top_owner_email
-  WHERE r.target_id = ? AND fm.top_owner_pct >= 0.9
-  ORDER BY fm.top_owner_pct DESC, fm.revisions DESC
-  LIMIT 50
-`, [target_id]);
+const heroes = await heroFiles(target_id);
 const narr5 = await narrative(target_id, "people", "hero_dependency_register");
 display(Inputs.table(heroes, {
   columns: ["file", "repo", "owner", "owned_pct", "revisions"],
