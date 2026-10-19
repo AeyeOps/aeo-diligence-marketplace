@@ -6,9 +6,9 @@ allowed-tools: Bash, Read, Agent
 
 # Refresh a diligence target
 
-In Claude Code invoke `/code-diligence:refreshing-target`; in Codex invoke `$refreshing-target`.
+In Claude Code invoke `/code-diligence:refreshing-target` from the plugin or `/refreshing-target` as a standalone skill; in Codex invoke `$refreshing-target`.
 
-Read `~/.claude/code-diligence-<target>.local.md` and confirm its warehouse exists. For an initial run, use [ingesting-target](../ingesting-target/SKILL.md).
+Read the target's `diligence.local.md` in its target folder and confirm its warehouse exists. [Ingesting-target](../ingesting-target/SKILL.md) step 1 locates the folder and step 3 resolves `$PLUGIN_ROOT`. For an initial run, use that skill.
 
 Before refresh, follow [prerequisite coverage](../ingesting-target/references/tool-prerequisites.md#explain-and-resolve-coverage-gaps). Explain each confirmed missing capability, its effect on the results, and how to close it. Carry forward prior installation or repair authorization; otherwise establish whether the user wants it resolved or accepts reduced coverage. Apply the same procedure to failures first discovered during refresh.
 

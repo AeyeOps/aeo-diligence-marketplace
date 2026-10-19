@@ -20,7 +20,7 @@ def clone_or_fetch(*, source_url: str, dest: Path, token: str | None = None) -> 
         credential = base64.b64encode(f"x-access-token:{token}".encode()).decode()
         env[f"GIT_CONFIG_VALUE_{index}"] = f"Authorization: Basic {credential}"
     if (dest / ".git").exists():
-        _run(["git", "-C", str(dest), "fetch", "origin", "--tags", "--prune", "--quiet"], env)
+        _run(["git", "-C", str(dest), "fetch", "origin", "--prune", "--quiet"], env)
         _run(["git", "-C", str(dest), "merge", "--ff-only", "@{upstream}"], env)
     else:
         _run(["git", "clone", "--quiet", "--", source_url, str(dest)], env)

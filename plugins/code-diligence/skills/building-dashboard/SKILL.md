@@ -6,9 +6,9 @@ allowed-tools: Bash, Read
 
 # Build a diligence dashboard
 
-In Claude Code invoke `/code-diligence:building-dashboard`; in Codex invoke `$building-dashboard`.
+In Claude Code invoke `/code-diligence:building-dashboard` from the plugin or `/building-dashboard` as a standalone skill; in Codex invoke `$building-dashboard`.
 
-Read the target's `~/.claude/code-diligence-<target>.local.md`. Resolve the plugin root from the runtime or this skill's location. Pass all three paths and the target ID:
+Read the target's `diligence.local.md` in its target folder. [Ingesting-target](../ingesting-target/SKILL.md) step 1 locates the folder and step 3 resolves `$PLUGIN_ROOT`. Pass all three paths and the target ID:
 
 ```sh
 uv run --directory "$PLUGIN_ROOT" python -m code_diligence.dashboard.render \

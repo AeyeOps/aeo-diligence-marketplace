@@ -14,11 +14,11 @@ sources:
     actions_data: true
     issues_data: true
 storage:
-  warehouse_path: ~/data/code-diligence/example-target.duckdb
-  repo_clone_root: ~/data/code-diligence/repos/example-target/
+  warehouse_path: ~/data/code-diligence/example-target/warehouse.duckdb
+  repo_clone_root: ~/data/code-diligence/example-target/repos/
   curation_dir: ~/data/code-diligence/example-target/curation/
 dashboard:
-  output_path: ~/data/code-diligence/dashboard/
+  output_path: ~/data/code-diligence/example-target/dashboard/
 heuristics:
   abandoned_threshold_days: 180
   fte_inference: true

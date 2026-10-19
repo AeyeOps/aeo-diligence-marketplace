@@ -10,6 +10,13 @@ from .schema import TargetSettings
 
 _FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n(.*)$", re.DOTALL)
 
+SETTINGS_FILENAME = "diligence.local.md"
+
+
+def settings_beside(warehouse: Path) -> Path:
+    """Return the settings path in the target folder that holds this warehouse."""
+    return warehouse.parent / SETTINGS_FILENAME
+
 
 def load_target_settings(path: Path) -> TargetSettings:
     """Parse a target settings file. Frontmatter has identity; body has config."""

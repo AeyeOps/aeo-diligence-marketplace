@@ -53,9 +53,9 @@ Each heuristic writes a YAML to `storage.curation_dir/` with `status: needs_revi
 | hercules | `tools/hercules.py` | `burndown_series` |
 | repowise | `tools/repowise.py` | `repowise_findings` |
 
-## Stage 7 — GitHub platform pass (full tier only, `sources.github.enabled: true`)
+## Stage 7 — GitHub platform pass (full tier only, any `sources.github_platform` switch true)
 
-Per repo: `pr_metrics`, `actions_metrics`, `release_metrics`, `issue_metrics`. Driven by the token from `sources.github.token_env`.
+Per repo: `pr_metrics`, `actions_metrics`, `release_metrics`, `issue_metrics`. Driven by the token from `sources.github.token_env`. Local checkouts take their GitHub repository from the `origin` URL, so platform data does not require organization discovery.
 
 ## Stage 8 — Axis confidence + taxonomy
 
@@ -67,4 +67,4 @@ Per repo: `pr_metrics`, `actions_metrics`, `release_metrics`, `issue_metrics`. D
 
 ## After the CLI — Narration and dashboard
 
-The ingesting skill invokes the runtime's native `diligence-narrator` agent after the CLI closes its warehouse connection. The narrator uses the registered warehouse MCP tools. Then the skill invokes the dashboard renderer with the target's configured paths and privacy setting. Ingest alone does not invoke an LLM or build HTML.
+The ingesting skill runs a narrator through the runtime's native subagent tool after the CLI closes its warehouse connection. The narrator uses the registered warehouse MCP tools. Then the skill invokes the dashboard renderer with the target's configured paths and privacy setting. Ingest alone does not invoke an LLM or build HTML.

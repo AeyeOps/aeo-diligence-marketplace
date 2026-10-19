@@ -95,12 +95,15 @@ def ingest(
     s = load_target_settings(settings)
     warehouse_path = Path(s.storage.warehouse_path).expanduser()
     repo_root = Path(s.storage.repo_clone_root).expanduser()
+    platform_pass = full and s.sources.github_platform.requested
 
     token = None
     remote_repos = []
-    if s.sources.github.enabled:
+    if s.sources.github.enabled or platform_pass:
         assert s.sources.github.token_env is not None
         token = resolve_token(s.sources.github.token_env)
+    if s.sources.github.enabled:
+        assert token is not None
         with GitHubClient(token=token) as client:
             for org in s.sources.github.orgs:
                 remote_repos.extend(
@@ -212,7 +215,7 @@ def ingest(
                     conn, target_id=s.target_id, repo_id=repo_id, repo_path=repo_dir,
                 )
 
-        if full and s.sources.github.enabled:
+        if platform_pass:
             from code_diligence.ingest.platform import run_platform_pass_for_repo
             assert token is not None
             for repo_dir in candidates:

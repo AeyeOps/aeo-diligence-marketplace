@@ -14,12 +14,9 @@ class GitHubSource(BaseModel):
     include_archived: bool = False
 
     @model_validator(mode="after")
-    def _require_token_and_orgs_when_enabled(self) -> Self:
-        if self.enabled:
-            if not self.token_env:
-                raise ValueError("github.token_env is required when github.enabled is true")
-            if not self.orgs:
-                raise ValueError("github.orgs is required (non-empty) when github.enabled is true")
+    def _require_orgs_when_enabled(self) -> Self:
+        if self.enabled and not self.orgs:
+            raise ValueError("github.orgs is required (non-empty) when github.enabled is true")
         return self
 
 
@@ -28,10 +25,22 @@ class GitHubPlatformSource(BaseModel):
     actions_data: bool = False
     issues_data: bool = False
 
+    @property
+    def requested(self) -> bool:
+        return self.pr_data or self.actions_data or self.issues_data
+
 
 class Sources(BaseModel):
     github: GitHubSource = Field(default_factory=GitHubSource)
     github_platform: GitHubPlatformSource = Field(default_factory=GitHubPlatformSource)
+
+    @model_validator(mode="after")
+    def _require_token_for_github_api(self) -> Self:
+        if (self.github.enabled or self.github_platform.requested) and not self.github.token_env:
+            raise ValueError(
+                "github.token_env is required when github.enabled or a github_platform switch is true"
+            )
+        return self
 
 
 class Storage(BaseModel):

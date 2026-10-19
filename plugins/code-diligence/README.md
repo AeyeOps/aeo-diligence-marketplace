@@ -83,17 +83,18 @@ Commands, hooks, MCP, and the Observable dashboard. The recommended path.
 
 ### Other runtimes
 
-The skills are readable outside Claude Code, but this repository packages a Claude Code plugin. Codex can install individual skill directories under `plugins/code-diligence/skills/` with its skill installer. The operational skills also require a shell, the Python project, and a configured warehouse MCP; installing skill text alone does not install those components. No Gemini extension manifest is included.
+The skills are readable outside Claude Code, but this repository packages a Claude Code plugin. Codex can install individual skill directories under `plugins/code-diligence/skills/` with its skill installer. The operational skills also require a shell, the Python project, and a configured warehouse MCP; installing skill text alone does not install those components. Claude Code can use the same skill directories standalone from its skills folder: set `CODE_DILIGENCE_ROOT` to this `plugins/code-diligence` folder and configure the warehouse MCP directly. No Gemini extension manifest is included.
 
 ## Configure your first target
 
-> Resolve the installed plugin root from `CLAUDE_PLUGIN_ROOT` inside Claude Code; plugin cache paths vary by installation.
+> Resolve the plugin root as `PLUGIN_ROOT` from `CLAUDE_PLUGIN_ROOT` inside a Claude Code plugin install, or from `CODE_DILIGENCE_ROOT` for standalone skills; plugin cache paths vary by installation.
 
-Copy the example settings, point it at the GitHub orgs you want to diligence, and set the env var that holds your PAT:
+Each target has its own folder. Copy the example settings into it as `diligence.local.md`, point it at the GitHub orgs you want to diligence, and set the env var that holds your PAT in your environment:
 
 ```sh
-cp "$CLAUDE_PLUGIN_ROOT/settings/diligence.example.local.md" \
-   ~/.claude/code-diligence-<target>.local.md
+mkdir -p ~/data/code-diligence/acme
+cp "$PLUGIN_ROOT/skills/ingesting-target/templates/diligence.example.local.md" \
+   ~/data/code-diligence/acme/diligence.local.md
 export ACME_DILIGENCE_GH_TOKEN=ghp_...
 ```
 
@@ -106,15 +107,15 @@ The settings file selects GitHub organizations or an existing local clone direct
 To enable the asker and narrator, start the session with the target warehouse selected:
 
 ```sh
-export DILIGENCE_WAREHOUSE_PATH=~/data/code-diligence/acme.duckdb
+export DILIGENCE_WAREHOUSE_PATH=~/data/code-diligence/acme/warehouse.duckdb
 ```
 
-For a newly created warehouse, reconnect the plugin MCP or start a new session after ingest. Exporting a variable in a child shell does not retarget an already running server.
+For a newly created warehouse, reconnect the plugin MCP or start a new session after ingest. Exporting a variable in a child shell does not retarget an already running server. Standalone skills configure the server directly, as the asking skill's connection reference shows.
 
 The ingest skill then builds the dashboard. Open its configured output with:
 
 ```sh
-python -m http.server -d ~/data/code-diligence/dashboard
+python -m http.server -d ~/data/code-diligence/acme/dashboard
 # → http://localhost:8000
 ```
 

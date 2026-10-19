@@ -8,7 +8,7 @@
 | `issue_triage_health` | Average time to first issue comment and count of issues still open after 90 days. |
 | `working_pattern_signals` | Repository-level commit day/hour distribution, only when `heuristics.allow_working_pattern_card` is true. |
 
-PRs, workflows, releases, and issues require a full run with GitHub enabled and their configured data switches. Working patterns use walker facts. Empty platform tables may mean collection was disabled, failed, or returned no records; inspect settings and Health before interpreting them.
+PRs, workflows, releases, and issues require a full run, `sources.github.token_env`, and their configured data switches. Working patterns use walker facts. Empty platform tables may mean collection was disabled, failed, or returned no records; inspect settings and Health before interpreting them.
 
 Narrate observed rates with their population and time span. Do not compare release counts or PR cycle time with DORA deployment thresholds. A first comment is not necessarily a maintainer response. Repository evidence alone does not establish review quality, employee performance, or business risk acceptance.
 

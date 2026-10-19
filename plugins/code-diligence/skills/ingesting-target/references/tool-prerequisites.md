@@ -23,6 +23,8 @@ When a matching binary or wheel is unavailable, check the upstream source-build 
 
 Before ingest or refresh, select tools for the [execution environment](#choose-the-installation-environment), then check the requested tier's executables with `command -v` and their supported version commands. Check Java and the exact JAR path separately; `java -version` alone does not establish code-maat availability. Verify the active runtime exposes the warehouse MCP tools and query `targets` to confirm the warehouse, after closing any ingest writer. A configured server is not a connected server. For an initial target, connect it after the warehouse exists.
 
+When a full run requests GitHub platform data, check that the variable named by `sources.github.token_env` is set, without printing its value. A missing variable is a gap: tell the user which variable to set, that pull-request, CI, release and issue data depend on it, and that the ingest stops until it is set or those switches are turned off. The user sets the token in their environment. Never create, fetch or store one.
+
 For every confirmed gap, tell the user:
 
 1. What is missing or failing, with the probe result. Distinguish an absent package, missing asset, unsupported build, connection problem, and successful analysis with no findings.
@@ -85,7 +87,7 @@ hercules version
 
 Repowise 0.57.0 depends on tree-sitter-gdscript 6.1.0. That dependency has no Linux ARM64 wheel and its source archive omits `tree_sitter/parser.h`. If installation fails with that exact missing-header diagnostic, place the header from [the matching upstream tag](https://github.com/prestonknopp/tree-sitter-gdscript/blob/v6.1.0/src/tree_sitter/parser.h) under a local include directory's `tree_sitter/`, and supply that include directory through `CPATH` while running `uv tool install repowise==0.57.0`. This supplies the missing build input without changing project dependencies or the curated agent venv. Validate the actual health and dead-code commands after installation.
 
-Repowise 0.57.0 also spawns a fresh duplication worker at 1,000 parsed files. That worker does not inherit the CLI's logging configuration and can prefix JSON stdout with `duplication_token_cache` debug output. The [worker logging patch](../../../vendor/repowise-0.57.0-worker-logging.patch) routes its diagnostics to stderr without changing findings. Apply it to this version's installed `repowise/core/analysis/health/duplication/isolation.py` using a fresh file inode so uv's shared package cache remains unchanged. Reinstallation replaces that local repair; validate actual JSON commands after any upgrade. Do not hide malformed output by discarding arbitrary lines in the adapter.
+Repowise 0.57.0 also spawns a fresh duplication worker at 1,000 parsed files. That worker does not inherit the CLI's logging configuration and can prefix JSON stdout with `duplication_token_cache` debug output. The worker logging patch, `vendor/repowise-0.57.0-worker-logging.patch` under the plugin root, routes its diagnostics to stderr without changing findings. Apply it to this version's installed `repowise/core/analysis/health/duplication/isolation.py` using a fresh file inode so uv's shared package cache remains unchanged. Reinstallation replaces that local repair; validate actual JSON commands after any upgrade. Do not hide malformed output by discarding arbitrary lines in the adapter.
 
 ## How the pipeline records missing tools
 
