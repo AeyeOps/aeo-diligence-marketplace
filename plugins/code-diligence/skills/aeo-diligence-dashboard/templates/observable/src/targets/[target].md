@@ -2,8 +2,8 @@
 
 ```js
 import {query, axisConfidence, headlines} from "../data/warehouse.js";
-import {abandonedRepos, busFactor, ciHealth, codeAge, codeHealth, couplings, delivery, findingsBySeverity, hotspots, issueTriage, ownershipByPerson, peopleByLabel, singleOwnerFiles} from "../data/metrics.js";
-import {confidenceLine, count, hours, pct, personNames, when, wrap} from "../data/labels.js";
+import {abandonedRepos, busFactor, ciHealth, codeAge, codeHealth, couplings, delivery, hotspots, issueTriage, ownershipByPerson, peopleByLabel, securityMonthly, singleOwnerFiles} from "../data/metrics.js";
+import {confidenceLine, count, day, hours, pct, personNames, severityLabel, when, wrap} from "../data/labels.js";
 
 const target_id = observable.params.target;
 const target = (await query(`SELECT name, description, last_refreshed_at FROM targets WHERE target_id = ?`, [target_id]))[0];
@@ -15,10 +15,10 @@ const confidence = Object.fromEntries(await Promise.all(
   ["people", "product", "process"].map(async axis => [axis, await axisConfidence(target_id, axis)])
 ));
 const nameOf = await personNames(target_id);
-const [bus, ownership, labels, single, ages, health, severity, hot, pairs, abandoned, repo_rows, ci_rows, issue_rows] = await Promise.all([
+const [bus, ownership, labels, single, ages, health, hot, pairs, abandoned, repo_rows, ci_rows, issue_rows, security] = await Promise.all([
   busFactor(target_id), ownershipByPerson(target_id), peopleByLabel(target_id), singleOwnerFiles(target_id),
-  codeAge(target_id), codeHealth(target_id), findingsBySeverity(target_id), hotspots(target_id), couplings(target_id),
-  abandonedRepos(target_id), delivery(target_id), ciHealth(target_id), issueTriage(target_id),
+  codeAge(target_id), codeHealth(target_id), hotspots(target_id), couplings(target_id),
+  abandonedRepos(target_id), delivery(target_id), ciHealth(target_id), issueTriage(target_id), securityMonthly(target_id),
 ]);
 
 function findings(axis) {
@@ -28,12 +28,12 @@ function findings(axis) {
   ])}</dl>`;
 }
 
-function area(axis, title, rows) {
+function area(axis, title, rows, status = confidenceLine(confidence[axis])) {
   return html`<section class="summary-area">
     <h3><a href="${target_id}/${axis}.html">${title}</a></h3>
-    <p class="summary-confidence">${confidenceLine(confidence[axis])}</p>
+    <p class="summary-confidence">${status}</p>
     <dl>${rows.filter(Boolean).map(([section_key, label, value, note, source]) => html`<div class="summary-row">
-      <dt><a href="${target_id}/${card_by_key[section_key].axis}.html#${card_by_key[section_key].anchor}">${label}</a><span>${note} · ${source}</span></dt>
+      <dt><a href="${target_id}/${card_by_key[section_key].axis}.html#${card_by_key[section_key].anchor}">${label}</a><span>${source ? html`<b class="summary-source">${source}</b> · ` : ""}${note}</span></dt>
       <dd>${value}</dd>
     </div>`)}</dl>
   </section>`;
@@ -57,8 +57,6 @@ const others = labels.filter(row => row.class !== "fte" && row.people > 0)
 const code_lines = ages.reduce((sum, row) => sum + row.surviving_loc, 0);
 const scored_files = health.reduce((sum, row) => sum + row.file_count, 0);
 const average_health = scored_files ? health.reduce((sum, row) => sum + row.average_health * row.file_count, 0) / scored_files : null;
-const critical = severity.reduce((sum, row) => sum + row.critical, 0);
-const high = severity.reduce((sum, row) => sum + row.high, 0);
 const runs = ci_rows.reduce((sum, row) => sum + row.runs, 0);
 const passing = runs ? ci_rows.reduce((sum, row) => sum + row.runs * row.success_rate, 0) / runs : null;
 const merged = repo_rows.reduce((sum, row) => sum + row.merged_prs, 0);
@@ -67,6 +65,19 @@ const releases = repo_rows.reduce((sum, row) => sum + row.releases_l30d, 0);
 const uses_releases = repo_rows.some(row => row.releases_total > 0);
 const issues = issue_rows.reduce((sum, row) => sum + row.total_issues, 0);
 const stale = issue_rows.reduce((sum, row) => sum + row.stale_open, 0);
+const latest_month = security.length ? +security.at(-1).month : null;
+const current = security.filter(row => +row.month === latest_month);
+const open_now = names => current.filter(row => names.includes(row.severity)).reduce((sum, row) => sum + row.closing, 0);
+const latest_read = current.length ? new Date(Math.max(...current.map(row => +row.last_read_at))) : null;
+const coverage = Array.from(
+  security.reduce((starts, row) => starts.set(row.severity, Math.min(starts.get(row.severity) ?? Infinity, +row.first_read_at)), new Map()),
+  ([sev, start]) => ({sev, start})
+).reduce((groups, {sev, start}) => groups.set(start, [...(groups.get(start) ?? []), severityLabel(sev).toLowerCase()]), new Map());
+const covered = [];
+const coverage_line = Array.from(coverage).sort(([a], [b]) => a - b).map(([start, names]) => {
+  covered.push(...names);
+  return `${covered.length === 6 ? "all severities" : covered.join(" and ")} since ${day(start)}`;
+}).join("; ");
 
 display(html`<div class="summary">
   ${area("people", "People", [
@@ -76,17 +87,16 @@ display(html`<div class="summary">
         : `in ${at_lowest} of ${bus.length} repositories${unestablished ? `; not established in ${unestablished}` : ""}`,
       "git-fame"],
     ownership.length && ["knowledge_concentration", "Largest owner", pct(ownership[0].owned_loc / owned_total), `${nameOf(ownership[0].person)}, share of all lines`, "git-fame"],
-    ["contributor_activity_timeline", "Employees", count(employees), others.length ? `plus ${others.join(", ")}` : "no other contributors", "git history"],
+    ["contributor_activity_timeline", "Employees", count(employees), others.length ? `plus ${others.join(", ")}` : "no other contributors", null],
     ["hero_dependency_register", "Single-owner files", pct(single.single_owner / single.files), `${count(single.single_owner)} of ${count(single.files)} files that exist today`, "code-maat"],
   ])}
   ${area("product", "Product", [
     ["code_aging_chart", "Lines of code", count(code_lines), "code files only, no JSON, YAML, Markdown or text", "git-of-theseus"],
     ["knowledge_concentration", "Lines in all files", count(owned_total), "includes JSON, Markdown and data files", "git-fame"],
     ["code_health", "Code health", average_health === null ? "Not collected" : `${average_health.toFixed(1)} of 10`, `average over ${count(scored_files)} files; higher is healthier`, "Repowise"],
-    health.length && ["code_health", "Critical findings", count(critical), `plus ${count(high)} rated high`, "Repowise"],
     hot.length && ["hotspot_map", "Most changes to one file", count(hot[0].revisions), wrap(hot[0].path), "code-maat"],
     ["hidden_coupling_matrix", "Hidden couplings", count(pairs.length), "file pairs that change together", "code-maat"],
-    ["abandoned_area_register", "Abandoned repositories", count(abandoned.length), `of ${repo_rows.length}`, "repository labels"],
+    ["abandoned_area_register", "Abandoned repositories", count(abandoned.length), `of ${repo_rows.length}`, null],
   ])}
   ${area("process", "Process", [
     ["ci_health", "CI runs passing", passing === null ? "No runs" : pct(passing), `of ${count(runs)} completed runs`, "GitHub Actions"],
@@ -94,6 +104,12 @@ display(html`<div class="summary">
     uses_releases && ["dora_quadrant", "GitHub releases", count(releases), "in the last 30 days", "GitHub"],
     ["issue_triage_health", "Issues open over 90 days", count(stale), issues ? `of ${count(issues)} GitHub issues` : "no GitHub issues recorded", "GitHub Issues"],
   ])}
+  ${security.length ? area("process", "Security", [
+    ["security_findings", "Fixable critical open", count(open_now(["CRITICAL"])), `at the latest read, ${day(latest_read)}`, "AWS Inspector"],
+    ["security_findings", "Fixable high open", count(open_now(["HIGH"])), "findings with a fix available", "AWS Inspector"],
+    ["security_findings", "Fixable medium and low open", count(open_now(["MEDIUM", "LOW"])), "findings with a fix available", "AWS Inspector"],
+    ["security_findings", "Resolved or retired this month", count(current.reduce((sum, row) => sum + row.removed, 0)), "patched or on retired resources", "AWS Inspector"],
+  ], coverage_line.charAt(0).toUpperCase() + coverage_line.slice(1)) : ""}
 </div>`);
 ```
 

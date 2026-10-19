@@ -244,6 +244,16 @@ def ingest(
                     issues_data=s.sources.github_platform.issues_data,
                 )
 
+        if full and s.sources.aws_inspector.enabled:
+            import boto3
+
+            from code_diligence.security.inspector import collect_inspector
+            isolated(
+                conn, target_id=s.target_id, repo_id=None,
+                tool="aws-inspector", tool_version=f"boto3 {boto3.__version__}",
+                fn=lambda: collect_inspector(conn, target_id=s.target_id, source=s.sources.aws_inspector),
+            )
+
         platform = s.sources.github_platform
         collected = frozenset(
             table for table, requested in (

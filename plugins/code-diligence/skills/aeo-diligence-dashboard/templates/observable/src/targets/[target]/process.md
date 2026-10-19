@@ -2,8 +2,8 @@
 
 ```js
 import {query, narrative, axisConfidence} from "../../data/warehouse.js";
-import {ciHealth, delivery, issueTriage} from "../../data/metrics.js";
-import {confidenceLine, count, duration, hours, pct, targetName, wrap} from "../../data/labels.js";
+import {ciHealth, delivery, issueTriage, securityMonthly} from "../../data/metrics.js";
+import {SEVERITY_COLORS, SEVERITY_ORDER, confidenceLine, count, duration, hours, monthLabel, pct, severityLabel, targetName, wrap} from "../../data/labels.js";
 import * as Plot from "npm:@observablehq/plot";
 const target_id = observable.params.target;
 const conf = await axisConfidence(target_id, "process");
@@ -74,6 +74,51 @@ if (issues.length) display(Inputs.table(issues.map(row => ({
 ```
 
 <p class="caption"><span class="source">Source: GitHub Issues.</span> Issues tracked in other tools do not appear.</p>
+
+---
+
+## Security findings
+
+<p class="finding">${narr4.body}</p>
+
+```js
+const security = await securityMonthly(target_id);
+const narr4 = await narrative(target_id, "process", "security_findings");
+if (security.length) {
+  const months = Array.from(new Set(security.map(row => monthLabel(row.month))));
+  const MEASURES = ["Resolved or retired", "Open at end"];
+  const bars = security.flatMap(row => [
+    {month: monthLabel(row.month), measure: MEASURES[0], severity: severityLabel(row.severity), findings: row.removed},
+    {month: monthLabel(row.month), measure: MEASURES[1], severity: severityLabel(row.severity), findings: row.closing},
+  ]).filter(bar => bar.findings > 0);
+  display(Plot.plot({
+    marks: [
+      Plot.barY(bars, {fx: "month", x: "measure", y: "findings", fill: "severity", order: SEVERITY_ORDER, tip: true}),
+      Plot.text(bars, Plot.groupX({y: "sum", text: "sum"}, {fx: "month", x: "measure", y: "findings", text: "findings", dy: -8, fill: "currentColor"})),
+      Plot.ruleY([0]),
+    ],
+    color: {domain: SEVERITY_ORDER, range: SEVERITY_COLORS, legend: true},
+    fx: {domain: months, label: null},
+    x: {domain: MEASURES, label: null},
+    y: {label: "Findings with a fix available", grid: true, tickFormat: "d"},
+    height: 280,
+  }));
+  display(Inputs.table(security.filter(row => row.opening + row.opened + row.removed + row.closing > 0).map(row => ({
+    month: monthLabel(row.month),
+    severity: severityLabel(row.severity),
+    opening: row.opening_from_first_read ? `${count(row.opening)} at first read` : count(row.opening),
+    opened: row.opened, removed: row.removed, closing: row.closing,
+  })), {
+    columns: ["month", "severity", "opening", "opened", "removed", "closing"],
+    header: {month: "Month", severity: "Severity", opening: "Open at start", opened: "Newly seen", removed: "Resolved or retired", closing: "Open at end"},
+    format: {opened: count, removed: count, closing: count},
+  }));
+} else {
+  display(html`<p>AWS Inspector findings were not collected for this target.</p>`);
+}
+```
+
+<p class="caption"><span class="source">Source: AWS Inspector.</span> Active findings with a fix available, on resources in the target's scope, counted once per finding. Months end in ${security[0]?.month_timezone ?? "UTC"}; the current month runs to the latest read. Inspector deletes closed findings after 30 days, so a month appears only once saved snapshots or reads cover it. Resolved or retired includes patched findings and findings on retired resources.</p>
 
 ```js
 if (allow_working_pattern_card) {

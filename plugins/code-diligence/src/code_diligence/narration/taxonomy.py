@@ -44,6 +44,8 @@ TAXONOMY: tuple[SectionDef, ...] = (
                "Completed workflow outcomes and durations by repository and workflow file."),
     SectionDef("process", "issue_triage_health", "Issue triage health",
                "Average time to first issue comment and count of issues still open after 90 days. A first comment is not necessarily a maintainer response."),
+    SectionDef("process", "security_findings", "Security findings",
+               "AWS Inspector findings with an available fix on in-scope resources, by month and severity: open at the start, newly seen, no longer open, and open at the end. History comes from saved snapshots and live reads; Inspector deletes closed findings after 30 days."),
     SectionDef("process", "working_pattern_signals", "Working pattern signals",
                "Commits by hour-of-day × day-of-week, aggregated to repo level."),
 )

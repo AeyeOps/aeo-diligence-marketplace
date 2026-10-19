@@ -13,6 +13,13 @@ sources:
     pr_data: true
     actions_data: true
     issues_data: true
+  aws_inspector:
+    enabled: false
+    profile: example-aws-profile
+    region: us-east-1
+    resource_prefixes: [example-app]
+    snapshot_dirs: []
+    timezone: UTC
 storage:
   warehouse_path: ~/data/code-diligence/example-target/warehouse.duckdb
   repo_clone_root: ~/data/code-diligence/example-target/repos/

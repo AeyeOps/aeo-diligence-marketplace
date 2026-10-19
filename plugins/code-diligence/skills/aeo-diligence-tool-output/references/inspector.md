@@ -1,0 +1,9 @@
+# AWS Inspector adapter
+
+Optional and full tier only. `code_diligence.security.inspector` reads Inspector through boto3 with the profile and region in `sources.aws_inspector`, filtered to active findings whose `fixAvailable` is YES or PARTIAL. It also loads saved snapshots from `snapshot_dirs`: JSON files named `account-findings-<YYYYmmddTHHMMSSZ>.json` with `severities` (the severities that read covered) and `findings` (Inspector's own finding objects). Snapshots already recorded are skipped by their read time.
+
+A finding is in scope when a resource's id, ECR repository name, Lambda function name or `Name` tag starts with a `resource_prefixes` entry; an empty list keeps every resource. Each read becomes one `security_reads` row and one `security_observations` row per qualifying finding, keyed by the finding id at the end of its ARN.
+
+`security_monthly` covers the last six calendar months in `timezone`, per severity, using only reads that covered that severity. Opening is the set at the last covering read before the month, or at the month's first read when coverage starts inside it (`opening_from_first_read`). Newly seen is every finding observed during the month that was not in the opening set. Resolved or retired is every finding in the opening set or observed during the month that is absent from the month's last read. Open at end is the last read's set, so opening + newly seen − resolved = open at end. A finding that leaves and returns within a month counts once.
+
+Inspector deletes closed findings after 30 days and findings on deleted resources after 3, so history depends on saved snapshots and earlier reads. Counts are findings on resources, not unique CVEs; a resolution can be a patch or a retired resource. Missing credentials, an unknown profile or denied access are recorded as an `aws-inspector` tool failure.

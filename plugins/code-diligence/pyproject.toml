@@ -5,6 +5,7 @@ requires-python = ">=3.13"
 license = "MIT"
 license-files = ["LICENSE"]
 dependencies = [
+    "boto3>=1.43.115",
     "duckdb~=1.5.2",
     "httpx~=0.28.1",
     "pydantic~=2.13.4",

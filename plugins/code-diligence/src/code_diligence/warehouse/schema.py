@@ -6,7 +6,7 @@ between versions live in `migrations.py`.
 """
 import duckdb
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 REPOWISE_HEALTH_DDL = """
     CREATE TABLE IF NOT EXISTS repowise_health (
@@ -20,6 +20,44 @@ REPOWISE_HEALTH_DDL = """
       worst_score             DOUBLE
     )
     """
+
+SECURITY_DDL: tuple[str, ...] = (
+    """
+    CREATE TABLE IF NOT EXISTS security_reads (
+      target_id  VARCHAR NOT NULL,
+      read_at    TIMESTAMP NOT NULL,
+      source     VARCHAR NOT NULL,
+      severities VARCHAR NOT NULL,
+      scope      VARCHAR NOT NULL,
+      PRIMARY KEY (target_id, read_at, source)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS security_observations (
+      target_id  VARCHAR NOT NULL,
+      read_at    TIMESTAMP NOT NULL,
+      source     VARCHAR NOT NULL,
+      finding_id VARCHAR NOT NULL,
+      severity   VARCHAR NOT NULL
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS security_monthly (
+      target_id     VARCHAR NOT NULL,
+      month         DATE NOT NULL,
+      severity      VARCHAR NOT NULL,
+      opening       INTEGER NOT NULL,
+      opened        INTEGER NOT NULL,
+      removed       INTEGER NOT NULL,
+      closing       INTEGER NOT NULL,
+      first_read_at TIMESTAMP NOT NULL,
+      last_read_at  TIMESTAMP NOT NULL,
+      opening_from_first_read BOOLEAN NOT NULL,
+      month_timezone VARCHAR NOT NULL,
+      PRIMARY KEY (target_id, month, severity)
+    )
+    """,
+)
 
 DDL_STATEMENTS: list[str] = [
 
@@ -216,6 +254,7 @@ DDL_STATEMENTS: list[str] = [
     """,
 
     REPOWISE_HEALTH_DDL,
+    *SECURITY_DDL,
 
     """
     CREATE TABLE IF NOT EXISTS pr_metrics (

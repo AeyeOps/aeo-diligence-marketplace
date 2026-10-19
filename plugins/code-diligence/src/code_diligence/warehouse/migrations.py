@@ -3,7 +3,7 @@ from collections.abc import Callable
 
 import duckdb
 
-from .schema import REPOWISE_HEALTH_DDL, init_schema
+from .schema import REPOWISE_HEALTH_DDL, SECURITY_DDL, init_schema
 
 
 def _preserve_repowise_hits(conn: duckdb.DuckDBPyConnection) -> None:
@@ -49,12 +49,24 @@ def _add_head_flag_and_repowise_health(conn: duckdb.DuckDBPyConnection) -> None:
     conn.execute("COMMIT")
 
 
+def _add_security_findings(conn: duckdb.DuckDBPyConnection) -> None:
+    """Hold AWS Inspector reads, their qualifying findings and the monthly balance."""
+    conn.execute("BEGIN TRANSACTION")
+    for ddl in SECURITY_DDL:
+        conn.execute(ddl)
+    conn.execute(
+        "INSERT INTO schema_version (version) SELECT 6 WHERE NOT EXISTS (SELECT 1 FROM schema_version WHERE version = 6)"
+    )
+    conn.execute("COMMIT")
+
+
 MIGRATIONS: dict[int, Callable[[duckdb.DuckDBPyConnection], None]] = {
     1: init_schema,
     2: init_schema,
     3: _preserve_repowise_hits,
     4: _drop_pr_review_fields,
     5: _add_head_flag_and_repowise_health,
+    6: _add_security_findings,
 }
 
 

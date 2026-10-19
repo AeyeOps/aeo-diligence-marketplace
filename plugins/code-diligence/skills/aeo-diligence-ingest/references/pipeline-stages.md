@@ -57,6 +57,10 @@ Each heuristic writes a YAML to `storage.curation_dir/` with `status: needs_revi
 
 Per repo: `pr_metrics`, `actions_metrics`, `release_metrics`, `issue_metrics`. Driven by the token from `sources.github.token_env`. Local checkouts take their GitHub repository from the `origin` URL, and their language, default branch and archived state from that repository's record, so platform data does not require organization discovery. Workflow runs are grouped by their workflow file path, because a run's display name changes when a workflow sets `run-name`.
 
+## Stage 7b — AWS Inspector (full tier only, `sources.aws_inspector.enabled`)
+
+Once per target, isolated as `aws-inspector`. Saved snapshots in `snapshot_dirs` that are not yet recorded, then one live read through the configured profile and region, enter `security_reads` and `security_observations`: active findings with `fixAvailable` YES or PARTIAL on resources whose repository, function, `Name` tag or id starts with a `resource_prefixes` entry. A snapshot is a JSON file named `account-findings-<YYYYmmddTHHMMSSZ>.json` holding `severities` and `findings` in Inspector's own shape. `security_monthly` is then rebuilt for the last six months in `timezone`. Changing the prefixes discards reads recorded under the old scope.
+
 ## Stage 8 — Axis confidence + taxonomy
 
 `compute_axis_confidence(...)` writes `axis_confidence` (per-axis signal completeness). `load_taxonomy_into_warehouse(...)` writes the canonical card list to `axes_taxonomy`. See `skills/aeo-diligence-axes/SKILL.md` for the card map.

@@ -47,14 +47,14 @@ if (health.length) display(Inputs.table(health, {
   width: {worst_path: "28%"},
 }));
 else display(html`<p>Repowise results were not collected for this target.</p>`);
-if (severity.length) display(html`<h3>Findings by Repowise severity</h3>`);
+if (severity.length) display(html`<h3>Code-quality findings by Repowise rating</h3>`);
 if (severity.length) display(Inputs.table(severity, {
   header: {repo: "Repository", critical: "Critical", high: "High", medium: "Medium", low: "Low", dead_code: "Dead code"},
   format: {repo: wrap, critical: count, high: count, medium: count, low: count, dead_code: count},
 }));
 ```
 
-<p class="caption"><span class="source">Source: Repowise.</span> Scores run from 1 to 10; higher is healthier. Hotspot health scores the most-changed files. Findings are counted by Repowise's own severity rating; dead code counts unused exports and unreachable files.</p>
+<p class="caption"><span class="source">Source: Repowise.</span> Scores run from 1 to 10; higher is healthier. Hotspot health scores the most-changed files. Findings are code-quality markers such as complex or long methods, counted by Repowise's own rating; they are not security vulnerabilities. Dead code counts unused exports and unreachable files.</p>
 
 ---
 

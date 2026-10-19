@@ -40,6 +40,12 @@ const SOURCE_LABELS = {
 };
 export const sourceLabel = value => SOURCE_LABELS[value] ?? value;
 
+const SEVERITY_LABELS = {CRITICAL: "Critical", HIGH: "High", MEDIUM: "Medium", LOW: "Low", INFORMATIONAL: "Informational", UNTRIAGED: "Untriaged"};
+export const SEVERITY_ORDER = Object.values(SEVERITY_LABELS);
+export const SEVERITY_COLORS = ["#8f1d21", "#d9480f", "#e8a317", "#6f8aa6", "#aab4bf", "#cfd5db"];
+export const severityLabel = value => SEVERITY_LABELS[value] ?? value;
+export const monthLabel = value => new Date(value).toLocaleDateString(undefined, {month: "short", year: "numeric", timeZone: "UTC"});
+
 export function missingSources(confidence) {
   return JSON.parse(confidence.missing_sources ?? "[]").map(sourceLabel);
 }

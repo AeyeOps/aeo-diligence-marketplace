@@ -42,6 +42,7 @@ export default {
 .summary-row dt a { color: var(--theme-foreground); }
 .summary-row dt a:hover, .summary-row dt a:focus-visible { color: var(--theme-foreground-focus); }
 .summary-row dt span { color: var(--theme-foreground-muted); font-size: 0.8rem; overflow-wrap: anywhere; }
+.summary-source { color: var(--theme-foreground); font-weight: 600; }
 .summary-row dd { margin: 0; font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .headlines { display: grid; grid-template-columns: minmax(9rem, 14rem) minmax(0, 72ch); gap: 0 1.5rem; margin: 1.25rem 0 0; }
 .headlines dt, .headlines dd { padding: 0.65rem 0; border-top: 1px solid var(--theme-foreground-faintest); }

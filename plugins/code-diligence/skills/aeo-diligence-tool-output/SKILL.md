@@ -23,7 +23,8 @@ Pick the per-tool reference for details:
 - [git of theseus](references/git-of-theseus.md) — cohort survival → `code_age_buckets`
 - [git fame](references/git-fame.md) — per-author LOC + commits + files → `ownership_share` (canonical)
 - [git truck](references/git-truck.md) — file tree with top contributor → `ownership_share` (cross-check only)
-- [repowise](references/repowise.md) — raw findings via the CLI adapter → `repowise_findings`
+- [repowise](references/repowise.md) — health scores and findings via the CLI adapter → `repowise_health`, `repowise_findings`
+- [AWS Inspector](references/inspector.md) — fixable findings per read and monthly balance → `security_reads`, `security_observations`, `security_monthly`
 
 Plus the cross-source disagreement policy: [cross check policy](references/cross-check-policy.md).
 

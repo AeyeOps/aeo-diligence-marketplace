@@ -6,6 +6,7 @@ from typing import TypeVar
 
 import duckdb
 import httpx
+from botocore.exceptions import BotoCoreError, ClientError, NoCredentialsError, ProfileNotFound
 
 from code_diligence.warehouse.failures import FailureClass, log_failure
 
@@ -25,10 +26,13 @@ def isolated(
     conn.execute("BEGIN TRANSACTION")
     try:
         result = fn()
-    except (OSError, subprocess.SubprocessError, ValueError, RuntimeError, httpx.HTTPError, duckdb.Error) as exc:
+    except (
+        OSError, subprocess.SubprocessError, ValueError, RuntimeError, httpx.HTTPError, duckdb.Error,
+        BotoCoreError, ClientError,
+    ) as exc:
         conn.execute("ROLLBACK")
         failure_class: FailureClass = "crash"
-        if isinstance(exc, FileNotFoundError):
+        if isinstance(exc, (FileNotFoundError, NoCredentialsError, ProfileNotFound)):
             failure_class = "prereq_missing"
         elif isinstance(exc, (TimeoutError, subprocess.TimeoutExpired, httpx.TimeoutException)):
             failure_class = "timeout"

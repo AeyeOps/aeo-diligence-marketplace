@@ -16,13 +16,13 @@
 
 ## What you get
 
-One **Observable dashboard** per target, covering **16 cards** across three diligence axes:
+One **Observable dashboard** per target, covering **17 cards** across three diligence axes:
 
 | Axis | Cards |
 |---|---|
 | **People** | bus-factor map · knowledge concentration · contributor activity timeline · communication graph · hero-dependency register |
 | **Product** | file change hotspots · code health · hidden coupling · code-aging chart · burndown over time · abandoned-area register · language inventory |
-| **Process** | delivery indicators · CI health · issue-triage health · working-pattern signals *(privacy-gated, off by default)* |
+| **Process** | delivery indicators · CI health · issue-triage health · security findings *(optional, AWS Inspector)* · working-pattern signals *(privacy-gated, off by default)* |
 
 With the target's warehouse MCP connected, the native narrator adds evidence-grounded prose to each card. A read-only chat agent answers follow-up questions ("why is the payments-service a hotspot?") with citations back to the warehouse and the repo.
 

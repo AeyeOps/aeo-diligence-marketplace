@@ -167,6 +167,14 @@ export function ciHealth(targetId) {
   `, [targetId]);
 }
 
+export function securityMonthly(targetId) {
+  return query(`
+    SELECT month, severity, opening, opened, removed, closing, first_read_at, last_read_at,
+           opening_from_first_read, month_timezone
+    FROM security_monthly WHERE target_id = ? ORDER BY month, severity
+  `, [targetId]);
+}
+
 export function issueTriage(targetId) {
   return query(`
     SELECT r.name AS repo,

@@ -6,9 +6,9 @@ from code_diligence.narration.taxonomy import TAXONOMY, load_taxonomy_into_wareh
 
 def test_taxonomy_has_all_spec_sections() -> None:
     sections = {(t.axis, t.section_key) for t in TAXONOMY}
-    assert len(sections) == 16
+    assert len(sections) == 17
     by_axis = {axis: sum(1 for a, _ in sections if a == axis) for axis in {"people", "product", "process"}}
-    assert by_axis == {"people": 5, "product": 7, "process": 4}
+    assert by_axis == {"people": 5, "product": 7, "process": 5}
 
 
 def test_load_taxonomy_into_warehouse(tmp_path: Path) -> None:
@@ -17,7 +17,7 @@ def test_load_taxonomy_into_warehouse(tmp_path: Path) -> None:
         migrate(conn)
         load_taxonomy_into_warehouse(conn)
         rows = conn.execute("SELECT axis, section_key, title FROM axes_taxonomy ORDER BY axis, section_key").fetchall()
-    assert len(rows) == 16
+    assert len(rows) == 17
     # Spot-check
     keys = {(r[0], r[1]) for r in rows}
     assert ("people", "bus_factor_map") in keys

@@ -1,8 +1,9 @@
 """Pydantic models for per-target settings."""
 import re
 from typing import Self
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 _TARGET_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$")
 
@@ -30,9 +31,34 @@ class GitHubPlatformSource(BaseModel):
         return self.pr_data or self.actions_data or self.issues_data
 
 
+class AwsInspectorSource(BaseModel):
+    enabled: bool = False
+    profile: str | None = None
+    region: str | None = None
+    resource_prefixes: list[str] = Field(default_factory=list)
+    snapshot_dirs: list[str] = Field(default_factory=list)
+    timezone: str = "UTC"
+
+    @field_validator("timezone")
+    @classmethod
+    def _known_timezone(cls, value: str) -> str:
+        try:
+            ZoneInfo(value)
+        except ZoneInfoNotFoundError as exc:
+            raise ValueError(f"aws_inspector.timezone is not a known time zone: {value}") from exc
+        return value
+
+    @model_validator(mode="after")
+    def _require_profile_and_region_when_enabled(self) -> Self:
+        if self.enabled and not (self.profile and self.region):
+            raise ValueError("aws_inspector.profile and aws_inspector.region are required when aws_inspector.enabled is true")
+        return self
+
+
 class Sources(BaseModel):
     github: GitHubSource = Field(default_factory=GitHubSource)
     github_platform: GitHubPlatformSource = Field(default_factory=GitHubPlatformSource)
+    aws_inspector: AwsInspectorSource = Field(default_factory=AwsInspectorSource)
 
     @model_validator(mode="after")
     def _require_token_for_github_api(self) -> Self:
