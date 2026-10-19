@@ -2,7 +2,7 @@
 
 | section_key | Evidence and interpretation |
 |---|---|
-| `bus_factor_map` | Minimum confirmed FTEs covering 50% of git-fame LOC in production or tooling repositories. Identity aliases are combined first. Missing FTE coverage is unavailable, not zero risk. |
+| `bus_factor_map` | Minimum confirmed FTEs covering 50% of non-bot git-fame LOC in production or tooling repositories. Identity aliases are combined first; lines owned by bot-labeled accounts are left out of the total. Missing FTE coverage is unavailable, not zero risk. |
 | `knowledge_concentration` | Top canonical contributor's share of git-fame LOC by repository. |
 | `contributor_activity_timeline` | Monthly distinct canonical contributors, grouped by confirmed classification; unclassified contributors remain unknown. |
 | `communication_graph` | Canonical authors linked when they change the same file in the same month. Edge weight counts shared file/month combinations. |

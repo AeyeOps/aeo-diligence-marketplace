@@ -51,7 +51,7 @@ Each heuristic writes a YAML to `storage.curation_dir/` with `status: needs_revi
 |---|---|---|
 | code-maat | `tools/code_maat.py` | updates `file_metrics.revisions` and `top_owner_email/pct`; writes `coupling_pairs (source='code-maat')` |
 | hercules | `tools/hercules.py` | `burndown_series` |
-| repowise | `tools/repowise.py` | `repowise_findings` |
+| repowise | `tools/repowise.py` | `repowise_findings`, `repowise_health` |
 
 ## Stage 7 — GitHub platform pass (full tier only, any `sources.github_platform` switch true)
 

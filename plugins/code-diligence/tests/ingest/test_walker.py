@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from code_diligence.ingest.walker import walk_commits
+from code_diligence.ingest.walker import tracked_paths, walk_commits
 
 
 def test_walks_synthetic_api_repo(synthetic_target: Path) -> None:
@@ -48,6 +48,7 @@ def test_persist_writes_commit_file_authors(synthetic_target: Path, tmp_path: Pa
         persist_repo_git_facts(
             conn, repo_id="acme/api",
             commits=walk_commits(synthetic_target / "api"),
+            head_paths=tracked_paths(synthetic_target / "api"),
         )
         n_edges = conn.execute(
             "SELECT COUNT(*) FROM commit_file_authors WHERE repo_id='acme/api'"

@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from code_diligence.ingest.persist import persist_repo_git_facts
-from code_diligence.ingest.walker import walk_commits
+from code_diligence.ingest.walker import tracked_paths, walk_commits
 from code_diligence.tools.code_maat import (
     CODE_MAAT_JAR,
     build_log_dump,
@@ -41,7 +41,7 @@ def test_persist_revisions_into_warehouse(synthetic_target: Path, tmp_path: Path
         migrate(conn)
         register_target(conn, target_id="acme", name="Acme")
         upsert_repo(conn, repo_id="acme/api", target_id="acme", name="api", source_url=str(synthetic_target / "api"))
-        persist_repo_git_facts(conn, repo_id="acme/api", commits=walk_commits(synthetic_target / "api"))
+        persist_repo_git_facts(conn, repo_id="acme/api", commits=walk_commits(synthetic_target / "api"), head_paths=tracked_paths(synthetic_target / "api"))
         log_dump = build_log_dump(synthetic_target / "api", out=tmp_path / "log.txt")
         csv_text = run_code_maat_analysis(log_dump, analysis="revisions")
         persist_revisions(conn, repo_id="acme/api", csv_text=csv_text)

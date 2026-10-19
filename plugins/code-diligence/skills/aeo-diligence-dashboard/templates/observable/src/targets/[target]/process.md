@@ -34,7 +34,7 @@ display(Inputs.table(dora.map(row => ({
 }));
 ```
 
-<p class="caption">From GitHub pull requests${uses_releases ? ", workflow runs and releases" : " and workflow runs"}. Production deployments and incidents are not collected, so these are not DORA metrics.</p>
+<p class="caption"><span class="source">Source: GitHub pull requests${uses_releases ? ", Actions runs and releases" : " and Actions runs"}.</span> Production deployments and incidents are not collected, so these are not DORA metrics.</p>
 
 ---
 
@@ -53,7 +53,7 @@ display(Inputs.table(ci, {
 }));
 ```
 
-<p class="caption">Completed GitHub Actions runs by workflow file. Cancelled runs count as not passing.</p>
+<p class="caption"><span class="source">Source: GitHub Actions.</span> Completed runs by workflow file. Cancelled runs count as not passing.</p>
 
 ---
 
@@ -73,7 +73,7 @@ if (issues.length) display(Inputs.table(issues.map(row => ({
 }));
 ```
 
-<p class="caption">GitHub Issues only. Issues tracked in other tools do not appear.</p>
+<p class="caption"><span class="source">Source: GitHub Issues.</span> Issues tracked in other tools do not appear.</p>
 
 ```js
 if (allow_working_pattern_card) {
@@ -95,5 +95,6 @@ if (allow_working_pattern_card) {
     y: {label: "Day (UTC)", tickFormat: day => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day]},
     height: 200, color: {scheme: "blues"},
   }));
+  display(html`<p class="caption"><span class="source">Source: git history.</span> Commits by day and hour, per repository.</p>`);
 }
 ```

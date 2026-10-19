@@ -15,9 +15,11 @@ Lives at: `skills/aeo-diligence-dashboard/templates/observable/` (relative to pl
         ├── index.md               # portfolio landing
         ├── data/
         │   ├── curation-counts.txt.js   # data loader: reads YAML from DILIGENCE_CURATION_DIR
-        │   └── warehouse.js             # query/narrative/axisConfidence helpers over DuckDB-WASM
+        │   ├── labels.js                # number, date, person and source-name formatting
+        │   ├── metrics.js               # card queries shared by the area pages and the overview summary
+        │   └── warehouse.js             # query/narrative/headlines/axisConfidence helpers over DuckDB-WASM
         └── targets/
-            ├── [target].md              # parameterized target landing
+            ├── [target].md              # overview: executive summary of every area, then each card's headline
             └── [target]/
                 ├── people.md
                 ├── product.md
@@ -37,6 +39,7 @@ Lives at: `skills/aeo-diligence-dashboard/templates/observable/` (relative to pl
 
 - `query(sql, params)` — async DuckDB-WASM query
 - `narrative(target_id, axis, section_key)` — pulls `narratives` row
+- `headlines(target_id)` — every card's title, page anchor and first narrative sentence
 - `axisConfidence(target_id, axis)` — pulls `axis_confidence` row
 
 Every page template (people.md, product.md, process.md, etc.) imports from this module.
@@ -51,7 +54,8 @@ Read via `FileAttachment("../../data/config.json").json()` in `targets/[target]/
 
 ## Adding a new card
 
-1. Add the card markdown to the appropriate axis page (`targets/[target]/<axis>.md`).
-2. If the card needs SQL, query against existing warehouse tables (see `skills/aeo-diligence-axes/SKILL.md` for the axis → table map).
+1. Add the card markdown to the appropriate axis page (`targets/[target]/<axis>.md`). Its caption starts with `<span class="source">Source: <tool>.</span>` naming the tool that produced the evidence.
+2. If the card needs SQL, query against existing warehouse tables (see `skills/aeo-diligence-axes/SKILL.md` for the axis → table map). Put a query the overview summary also reads in `metrics.js`, so both show the same number.
 3. If the card needs a new warehouse table, add it to `src/code_diligence/warehouse/schema.py` and bump `SCHEMA_VERSION`, then register a migration in `migrations.py`.
-4. Add a narrative section_key to `axes_taxonomy` so the narrator picks it up.
+4. Add a narrative section_key to `axes_taxonomy` so the narrator picks it up. Its title must match the card's heading, because overview links use the heading's anchor.
+5. If the card has a headline number, add it to the overview summary with the same source name.

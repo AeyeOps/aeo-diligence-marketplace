@@ -17,7 +17,8 @@ export function busFactor(targetId) {
       WHERE r.target_id = ? AND rc.class IN ('production', 'tooling')
       GROUP BY r.repo_id, r.name, author, cc.class
     ), totals AS (
-      SELECT repo_id, repo, SUM(owned_loc) AS total_loc FROM ownership GROUP BY repo_id, repo
+      SELECT repo_id, repo, SUM(owned_loc) FILTER (WHERE contributor_class IS DISTINCT FROM 'bot') AS total_loc
+      FROM ownership GROUP BY repo_id, repo
     ), ranked AS (
       SELECT *, ROW_NUMBER() OVER (PARTITION BY repo_id ORDER BY owned_loc DESC, author) AS author_rank,
              SUM(owned_loc) OVER (PARTITION BY repo_id ORDER BY owned_loc DESC, author) AS cumulative_loc
@@ -61,7 +62,7 @@ export function heroFiles(targetId) {
     FROM file_metrics fm
     JOIN repos r ON r.repo_id = fm.repo_id
     LEFT JOIN identity_map im ON im.target_id = r.target_id AND im.raw_email = fm.top_owner_email
-    WHERE r.target_id = ? AND fm.top_owner_pct >= ${SINGLE_OWNER_SHARE}
+    WHERE r.target_id = ? AND fm.in_head AND fm.top_owner_pct >= ${SINGLE_OWNER_SHARE}
     ORDER BY fm.top_owner_pct DESC, fm.revisions DESC
     LIMIT 50
   `, [targetId]);
@@ -71,7 +72,7 @@ export async function singleOwnerFiles(targetId) {
   const [row] = await query(`
     SELECT COUNT(*) FILTER (WHERE fm.top_owner_pct >= ${SINGLE_OWNER_SHARE}) AS single_owner, COUNT(*) AS files
     FROM file_metrics fm JOIN repos r ON r.repo_id = fm.repo_id
-    WHERE r.target_id = ?
+    WHERE r.target_id = ? AND fm.in_head
   `, [targetId]);
   return row;
 }
@@ -82,8 +83,30 @@ export function hotspots(targetId) {
     FROM file_metrics fm
     JOIN repos r ON r.repo_id = fm.repo_id
     JOIN repo_classification rc ON rc.repo_id = fm.repo_id
-    WHERE r.target_id = ? AND rc.class IN ('production', 'tooling')
+    WHERE r.target_id = ? AND fm.in_head AND rc.class IN ('production', 'tooling')
     ORDER BY fm.revisions DESC, fm.path LIMIT 25
+  `, [targetId]);
+}
+
+export function codeHealth(targetId) {
+  return query(`
+    SELECT r.name AS repo, rh.average_health, rh.hotspot_health, rh.maintainability_average,
+           rh.performance_average, rh.file_count, rh.worst_path, rh.worst_score
+    FROM repowise_health rh JOIN repos r ON r.repo_id = rh.repo_id
+    WHERE r.target_id = ? ORDER BY r.name
+  `, [targetId]);
+}
+
+export function findingsBySeverity(targetId) {
+  return query(`
+    SELECT r.name AS repo,
+           COUNT(*) FILTER (WHERE f.severity = 'critical') AS critical,
+           COUNT(*) FILTER (WHERE f.severity = 'high') AS high,
+           COUNT(*) FILTER (WHERE f.severity = 'medium') AS medium,
+           COUNT(*) FILTER (WHERE f.severity = 'low') AS low,
+           COUNT(*) FILTER (WHERE COALESCE(f.severity, '') = '') AS dead_code
+    FROM repowise_findings f JOIN repos r ON r.repo_id = f.repo_id
+    WHERE r.target_id = ? GROUP BY r.name ORDER BY r.name
   `, [targetId]);
 }
 

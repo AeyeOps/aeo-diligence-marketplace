@@ -27,7 +27,7 @@ display(Inputs.table(bus_factor_rows.map(row => ({...row, bus_factor_estimate: r
 }));
 ```
 
-<p class="caption">Employees whose combined surviving lines (git-fame) reach half of each production or tooling repository, after identity merges. Unlabeled contributors are not counted as employees.</p>
+<p class="caption"><span class="source">Source: git-fame, with contributor labels from curation.</span> Employees whose combined surviving lines reach half of the non-bot lines in each production or tooling repository, after identity merges. Unlabeled contributors are not counted as employees.</p>
 
 ---
 
@@ -68,7 +68,7 @@ display(Plot.plot({
 }));
 ```
 
-<p class="caption">Share of each repository's surviving lines (git-fame) held by its largest contributor, after identity merges.</p>
+<p class="caption"><span class="source">Source: git-fame.</span> Share of each repository's surviving lines held by its largest contributor, after identity merges.</p>
 
 ---
 
@@ -104,7 +104,7 @@ display(Plot.plot({
 }));
 ```
 
-<p class="caption">Distinct people committing each month, after identity merges, by contributor label.</p>
+<p class="caption"><span class="source">Source: git history.</span> Distinct people committing each month, after identity merges, by contributor label.</p>
 
 ---
 
@@ -156,7 +156,7 @@ graph.append("g").attr("fill", "currentColor").attr("font-size", 12).selectAll("
 display(graph.node());
 ```
 
-<p class="caption">People linked when they changed the same file in the same month; line width grows with those shared file-months. Co-editing is not evidence of communication.</p>
+<p class="caption"><span class="source">Source: git history.</span> People linked when they changed the same file in the same month; line width grows with those shared file-months. Co-editing is not evidence of communication.</p>
 
 ---
 
@@ -175,4 +175,4 @@ display(Inputs.table(heroes, {
 }));
 ```
 
-<p class="caption">Files where one person made at least 90% of the added lines over their history (code-maat), most-changed first, top 50.</p>
+<p class="caption"><span class="source">Source: code-maat.</span> Files that exist today where one person made at least 90% of the added lines over their history, most-changed first, top 50.</p>

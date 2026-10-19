@@ -10,7 +10,7 @@ from code_diligence.curation.schema import (
     RepoClassificationFile,
 )
 from code_diligence.ingest.persist import persist_repo_git_facts
-from code_diligence.ingest.walker import walk_commits
+from code_diligence.ingest.walker import tracked_paths, walk_commits
 from code_diligence.warehouse.connection import open_warehouse
 from code_diligence.warehouse.migrations import migrate
 from code_diligence.warehouse.repos import upsert_repo
@@ -45,7 +45,7 @@ def populated_warehouse(tmp_path: Path, synthetic_target: Path) -> tuple[Path, P
                 name=repo_dir.name, source_url=str(repo_dir),
             )
             persist_repo_git_facts(
-                conn, repo_id=repo_id, commits=walk_commits(repo_dir),
+                conn, repo_id=repo_id, commits=walk_commits(repo_dir), head_paths=tracked_paths(repo_dir),
             )
     return warehouse, repo_root, curation
 

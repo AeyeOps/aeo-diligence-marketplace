@@ -9,7 +9,7 @@ repowise dead-code <repo> --format json --no-workspace
 
 Health recomputation in JSON mode does not persist a Repowise index or request model-generated code. Dead-code uses the provider's stored result when applicable and otherwise analyzes the working tree. The adapter retains provider defaults for detection and confidence.
 
-Health returns an object with `findings`; dead-code returns an array. The adapter keeps each raw finding and derives a scope from its file and function/symbol, and a type from `biomarker_type` or `kind`. Multiple provider hits can share that scope and type, so the warehouse preserves them without a uniqueness constraint. These records enter `repowise_findings`; they are not automatically merged into dashboard metrics.
+Health returns an object with `findings`; dead-code returns an array. The adapter keeps each raw finding and derives a scope from its file and function/symbol, and a type from `biomarker_type` or `kind`. Multiple provider hits can share that scope and type, so the warehouse preserves them without a uniqueness constraint. These records enter `repowise_findings`. Health's `kpis` summary enters `repowise_health`, one row per repository: average and hotspot health, maintainability and performance scores from 1 to 10 where higher is healthier, files scored, and the lowest-scoring file. Its structure and history averages are deductions from 10, not scores, and are not stored. Both tables feed the Code health card.
 
 A missing executable, failed command, or invalid response is a failed tool run, not an empty finding set. The per-tool transaction preserves the prior snapshot on failure. A successful empty result clears it. Each subprocess has a 300-second timeout.
 

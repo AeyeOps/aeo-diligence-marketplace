@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from code_diligence.tools.repowise import (
-    fetch_repowise_findings_for_repo,
+    fetch_repowise_for_repo,
     persist_repowise,
 )
 from code_diligence.warehouse.connection import open_warehouse
@@ -18,7 +18,7 @@ def test_fetch_repowise_raises_when_binary_missing(tmp_path: Path) -> None:
     """Report the missing prerequisite to the isolation boundary."""
     with patch("code_diligence.tools.repowise.subprocess.run", side_effect=FileNotFoundError):
         with pytest.raises(FileNotFoundError):
-            fetch_repowise_findings_for_repo(tmp_path)
+            fetch_repowise_for_repo(tmp_path)
 
 
 def test_fetch_repowise_raises_on_nonzero_exit(tmp_path: Path) -> None:
@@ -27,7 +27,7 @@ def test_fetch_repowise_raises_on_nonzero_exit(tmp_path: Path) -> None:
         side_effect=subprocess.CalledProcessError(1, "repowise", stderr="error"),
     ):
         with pytest.raises(subprocess.CalledProcessError):
-            fetch_repowise_findings_for_repo(tmp_path)
+            fetch_repowise_for_repo(tmp_path)
 
 
 def test_persist_repowise_writes_rows(tmp_path: Path) -> None:
@@ -40,7 +40,7 @@ def test_persist_repowise_writes_rows(tmp_path: Path) -> None:
         migrate(conn)
         register_target(conn, target_id="acme", name="Acme")
         upsert_repo(conn, repo_id="acme/api", target_id="acme", name="api", source_url=str(tmp_path))
-        persist_repowise(conn, repo_id="acme/api", findings=findings)
+        persist_repowise(conn, repo_id="acme/api", kpis={"average_health": 6.1, "hotspot_health": 4.2, "maintainability_average": 5.1, "performance_average": 9.9, "file_count": 2, "worst_performer_path": "api/main.py", "worst_performer_score": 1.6}, findings=findings)
         rows = conn.execute(
             "SELECT scope, finding_type, severity FROM repowise_findings WHERE repo_id='acme/api'"
         ).fetchall()

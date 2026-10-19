@@ -12,7 +12,7 @@ The warehouse preserves source-specific results. The pipeline does not compute c
 | Hidden coupling | code-maat pairs with counts, support and lift computed from walker facts |
 | Current code vintage | git-of-theseus |
 | Code survival over time | hercules |
-| Raw supplemental findings | repowise; queried separately, not merged into cards |
+| Code health ratings | repowise; shown on the Code health card, not merged into other cards |
 
 Before comparing numbers, compare their units, file set, time window, and identity handling. Git-fame measures surviving blamed lines; git-truck measures historical change volume under display names. Those numbers are not interchangeable. A difference alone does not establish that either tool failed.
 

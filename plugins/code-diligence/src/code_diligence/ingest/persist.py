@@ -13,6 +13,7 @@ def persist_repo_git_facts(
     *,
     repo_id: str,
     commits: Iterable[CommitRecord],
+    head_paths: set[str],
 ) -> None:
     """Idempotent upsert: commits_fact, authors, file_metrics; updates repos.first/last_commit_at."""
     commits = list(commits)
@@ -115,13 +116,14 @@ def persist_repo_git_facts(
             f["authors"].add(c.author_email)
             f["last"] = c.author_date if f["last"] is None or c.author_date > f["last"] else f["last"]
     rows_files = [
-        (repo_id, path, m["revisions"], len(m["authors"]), m["last"])
+        (repo_id, path, m["revisions"], len(m["authors"]), m["last"], path in head_paths)
         for path, m in file_rev.items()
     ]
+    rows_files += [(repo_id, path, 0, 0, None, True) for path in sorted(head_paths - file_rev.keys())]
     if rows_files:
         conn.executemany(
-            "INSERT INTO file_metrics (repo_id, path, revisions, total_authors, last_modified_at) "
-            "VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO file_metrics (repo_id, path, revisions, total_authors, last_modified_at, in_head) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
             rows_files,
         )
 

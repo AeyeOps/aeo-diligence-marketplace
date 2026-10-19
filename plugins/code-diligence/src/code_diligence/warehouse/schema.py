@@ -6,7 +6,20 @@ between versions live in `migrations.py`.
 """
 import duckdb
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
+
+REPOWISE_HEALTH_DDL = """
+    CREATE TABLE IF NOT EXISTS repowise_health (
+      repo_id                 VARCHAR PRIMARY KEY,
+      average_health          DOUBLE,
+      hotspot_health          DOUBLE,
+      maintainability_average DOUBLE,
+      performance_average     DOUBLE,
+      file_count              INTEGER,
+      worst_path              VARCHAR,
+      worst_score             DOUBLE
+    )
+    """
 
 DDL_STATEMENTS: list[str] = [
 
@@ -137,6 +150,7 @@ DDL_STATEMENTS: list[str] = [
       churn_l30d     INTEGER DEFAULT 0,
       churn_l90d     INTEGER DEFAULT 0,
       complexity_proxy DOUBLE,
+      in_head        BOOLEAN,
       PRIMARY KEY (repo_id, path)
     )
     """,
@@ -200,6 +214,8 @@ DDL_STATEMENTS: list[str] = [
       evidence       JSON
     )
     """,
+
+    REPOWISE_HEALTH_DDL,
 
     """
     CREATE TABLE IF NOT EXISTS pr_metrics (

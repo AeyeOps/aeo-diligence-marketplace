@@ -15,7 +15,7 @@ class SectionDef:
 
 TAXONOMY: tuple[SectionDef, ...] = (
     SectionDef("people", "bus_factor_map", "Bus factor map",
-               "Minimum confirmed FTEs covering 50% of git-fame LOC in production or tooling repositories, after combining identity aliases. Insufficient FTE ownership is unavailable."),
+               "Minimum confirmed FTEs covering 50% of non-bot git-fame LOC in production or tooling repositories, after combining identity aliases. Insufficient FTE ownership is unavailable."),
     SectionDef("people", "knowledge_concentration", "Knowledge concentration",
                "Top canonical contributor's share of git-fame LOC per repository."),
     SectionDef("people", "contributor_activity_timeline", "Contributor activity timeline",
@@ -26,6 +26,8 @@ TAXONOMY: tuple[SectionDef, ...] = (
                "Files where one author accounts for at least 90% of historical additions according to code-maat."),
     SectionDef("product", "hotspot_map", "File change hotspots",
                "File revision counts in production and tooling repositories. The score uses complexity only when collected; the current pipeline does not populate complexity."),
+    SectionDef("product", "code_health", "Code health",
+               "Repowise health scores from 1 to 10, higher is healthier, and Repowise findings by severity per repository."),
     SectionDef("product", "hidden_coupling_matrix", "Hidden coupling matrix",
                "Code-maat file pairs with shared-commit counts, support and lift from walker facts. The card displays lift above 1.5 and support above 0.05."),
     SectionDef("product", "code_aging_chart", "Code aging chart",

@@ -6,7 +6,7 @@ description: Reference for the People / Product / Process taxonomy, card-to-tabl
 code-diligence organizes findings along three axes. Pick the per-axis reference for the card-to-table map; come back here for the cross-axis narration rules.
 
 - [people](references/people.md) — 5 cards, primarily git-derived (bus factor, knowledge concentration, contributor activity, communication graph, hero register)
-- [product](references/product.md) — 6 cards, code-derived (hotspots, hidden coupling, code aging, burndown, abandoned areas, language inventory)
+- [product](references/product.md) — 7 cards, code-derived (hotspots, code health, hidden coupling, code aging, burndown, abandoned areas, language inventory)
 - [process](references/process.md) — 4 cards, GitHub-platform-dependent (delivery indicators, CI health, issue triage, working-pattern signals)
 
 ## Narration contract

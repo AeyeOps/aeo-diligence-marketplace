@@ -31,6 +31,15 @@ _FIELD_SEP = "\x1f"
 _FORMAT = f"{_RECORD_SEP}%H{_FIELD_SEP}%aN{_FIELD_SEP}%aE{_FIELD_SEP}%aI{_FIELD_SEP}%P{_FIELD_SEP}%s"
 
 
+def tracked_paths(repo: Path) -> set[str]:
+    """Paths present at HEAD, quoted the same way git log reports them."""
+    proc = subprocess.run(
+        ["git", "-C", str(repo), "ls-files"],
+        capture_output=True, text=True, check=True,
+    )
+    return set(proc.stdout.splitlines())
+
+
 def walk_commits(repo: Path) -> Iterator[CommitRecord]:
     """Yield CommitRecord objects for every commit reachable from HEAD.
 

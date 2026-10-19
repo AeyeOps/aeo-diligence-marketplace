@@ -27,7 +27,7 @@ def test_persist_populates_commits_authors_file_metrics(
     api = synthetic_target / "api"
     commits = list(walk_commits(api))
     with open_warehouse(db) as conn:
-        persist_repo_git_facts(conn, repo_id="acme/api", commits=commits)
+        persist_repo_git_facts(conn, repo_id="acme/api", commits=commits, head_paths=set())
         n_commits = conn.execute(
             "SELECT COUNT(*) FROM commits_fact WHERE repo_id='acme/api'"
         ).fetchone()[0]
@@ -53,7 +53,7 @@ def test_persist_idempotent(synthetic_target: Path, tmp_path: Path) -> None:
     with open_warehouse(db) as conn:
         for _ in range(2):
             commits = list(walk_commits(api))
-            persist_repo_git_facts(conn, repo_id="acme/api", commits=commits)
+            persist_repo_git_facts(conn, repo_id="acme/api", commits=commits, head_paths=set())
         n_commits = conn.execute(
             "SELECT COUNT(*) FROM commits_fact WHERE repo_id='acme/api'"
         ).fetchone()[0]

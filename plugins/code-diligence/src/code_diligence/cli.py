@@ -14,7 +14,7 @@ from code_diligence.ingest.cheap_tools import run_cheap_tools_for_repo
 from code_diligence.ingest.cloner import clone_or_fetch
 from code_diligence.ingest.isolation import isolated
 from code_diligence.ingest.persist import persist_repo_git_facts
-from code_diligence.ingest.walker import walk_commits
+from code_diligence.ingest.walker import tracked_paths, walk_commits
 from code_diligence.narration.confidence import compute_axis_confidence
 from code_diligence.narration.taxonomy import load_taxonomy_into_warehouse
 from code_diligence.settings.loader import load_target_settings, resolve_token
@@ -195,7 +195,7 @@ def ingest(
                     conn, target_id=s.target_id, repo_id=repo_id,
                     tool="walker", tool_version="0.1.0",
                     fn=lambda d=repo_dir, rid=repo_id: persist_repo_git_facts(
-                        conn, repo_id=rid, commits=walk_commits(d),
+                        conn, repo_id=rid, commits=walk_commits(d), head_paths=tracked_paths(d),
                     ),
                 )
                 run_cheap_tools_for_repo(

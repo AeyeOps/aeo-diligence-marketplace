@@ -66,7 +66,7 @@ When no external traffic is required, verify the actual analyzer invocation in t
 |---|---|---|
 | `java` (≥17) and the JAR below | Use the host's package manager, or `mise use --global java@temurin-17.0.20+8` when mise manages tools; verify `java -version` and `java -jar <jar> --help` | No hidden-coupling pairs or code-maat file-owner enrichment; file-owner estimates remain unavailable. |
 | `hercules` | Native binary from [v10.7.2](https://github.com/src-d/hercules/releases/tag/v10.7.2), or build below; verify `hercules version` | No historical code-survival series; current code age from git-of-theseus cannot show that trajectory. |
-| `repowise` | `uv tool install repowise`; verify `repowise --version`, disable telemetry as above | No persisted health/dead-code findings for analyst queries. These are separate evidence, not inputs automatically combined into dashboard charts. |
+| `repowise` | `uv tool install repowise`; verify `repowise --version`, disable telemetry as above | No Code health card: no Repowise health scores or findings by severity. |
 | Native warehouse MCP | Configure the existing stdio server for the target; see [connection boundary](../../aeo-diligence-ask/references/asker-boundary.md) | No native asker queries or persisted agent narration. Metrics and dashboard rendering can still work; an empty narrative is not an analytical finding. |
 
 ## Vendored
@@ -101,13 +101,13 @@ That column records the installed tool inventory, not successful execution. Chec
 
 | Tool present | Tables written |
 |---|---|
-| `git` (always) | `commits_fact`, `commit_file_authors`, `authors`, `file_metrics` (initial revisions/distinct authors/last-modified), `repos` |
+| `git` (always) | `commits_fact`, `commit_file_authors`, `authors`, `file_metrics` (initial revisions/distinct authors/last-modified, and whether the file exists at HEAD), `repos` |
 | `git-fame` | `ownership_share (source='git-fame')` |
 | `git-of-theseus-analyze` | `code_age_buckets` |
 | `git-truck` (via `npx`) | `ownership_share (source='git-truck')` |
 | `hercules` | `burndown_series` |
 | `code-maat` (Java + vendored JAR) | `coupling_pairs (source='code-maat')`, updates `file_metrics.revisions`, updates `file_metrics.top_owner_email/pct` |
-| `repowise` | `repowise_findings` |
+| `repowise` | `repowise_findings`, `repowise_health` |
 | Native narrator agent with connected warehouse MCP | `narratives` |
 
 If a card shows "data unavailable," reverse-engineer back to the missing tool by looking at the column above.

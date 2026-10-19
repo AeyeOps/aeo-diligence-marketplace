@@ -2,7 +2,7 @@
 
 ```js
 import {query, narrative, axisConfidence} from "../../data/warehouse.js";
-import {abandonedRepos, codeAge, couplings, hotspots} from "../../data/metrics.js";
+import {abandonedRepos, codeAge, codeHealth, couplings, findingsBySeverity, hotspots} from "../../data/metrics.js";
 import {confidenceLine, count, day, pct, targetName, wrap} from "../../data/labels.js";
 import * as Plot from "npm:@observablehq/plot";
 const target_id = observable.params.target;
@@ -27,7 +27,34 @@ display(Inputs.table(hotspot_rows, {
 }));
 ```
 
-<p class="caption">Most-changed files in production and tooling repositories, top 25.</p>
+<p class="caption"><span class="source">Source: code-maat.</span> Most-changed files that exist today in production and tooling repositories, top 25.</p>
+
+---
+
+## Code health
+
+<p class="finding">${narr_health.body}</p>
+
+```js
+const health = await codeHealth(target_id);
+const severity = await findingsBySeverity(target_id);
+const narr_health = await narrative(target_id, "product", "code_health");
+const score = value => typeof value === "number" ? value.toFixed(1) : value;
+if (health.length) display(Inputs.table(health, {
+  columns: ["repo", "average_health", "hotspot_health", "maintainability_average", "performance_average", "file_count", "worst_path", "worst_score"],
+  header: {repo: "Repository", average_health: "Health", hotspot_health: "Hotspot health", maintainability_average: "Maintainability", performance_average: "Performance", file_count: "Files scored", worst_path: "Lowest-scoring file", worst_score: "Its score"},
+  format: {repo: wrap, average_health: score, hotspot_health: score, maintainability_average: score, performance_average: score, file_count: count, worst_path: wrap, worst_score: score},
+  width: {worst_path: "28%"},
+}));
+else display(html`<p>Repowise results were not collected for this target.</p>`);
+if (severity.length) display(html`<h3>Findings by Repowise severity</h3>`);
+if (severity.length) display(Inputs.table(severity, {
+  header: {repo: "Repository", critical: "Critical", high: "High", medium: "Medium", low: "Low", dead_code: "Dead code"},
+  format: {repo: wrap, critical: count, high: count, medium: count, low: count, dead_code: count},
+}));
+```
+
+<p class="caption"><span class="source">Source: Repowise.</span> Scores run from 1 to 10; higher is healthier. Hotspot health scores the most-changed files. Findings are counted by Repowise's own severity rating; dead code counts unused exports and unreachable files.</p>
 
 ---
 
@@ -45,7 +72,7 @@ if (coupling_rows.length) display(Inputs.table(coupling_rows, {
 }));
 ```
 
-<p class="caption">File pairs that change together far more often than chance: lift above 1.5, in more than 5% of the repository's commits.</p>
+<p class="caption"><span class="source">Source: code-maat.</span> File pairs that change together far more often than chance: lift above 1.5, in more than 5% of the repository's commits.</p>
 
 ---
 
@@ -69,7 +96,7 @@ if (ages.length) display(Plot.plot({
 }));
 ```
 
-<p class="caption">Lines of source code that survive today, by the year they were written (git-of-theseus). JSON, Markdown and other data files are not counted.</p>
+<p class="caption"><span class="source">Source: git-of-theseus.</span> Lines of code that survive today, by the year they were written. JSON, YAML, Markdown and text files are not counted.</p>
 
 ---
 
@@ -102,7 +129,7 @@ for (const repo of new Set(burndown.map(row => row.repo))) {
 }
 ```
 
-<p class="caption">Surviving lines of every tracked file over time, by the year they were written (hercules). Each repository has its own sample dates.</p>
+<p class="caption"><span class="source">Source: Hercules.</span> Surviving lines of every tracked file over time, by the year they were written. Each repository has its own sample dates.</p>
 
 ---
 
@@ -119,6 +146,8 @@ if (abandoned.length) display(Inputs.table(abandoned, {
   format: {last_commit_at: day, last_msg: wrap},
 }));
 ```
+
+<p class="caption"><span class="source">Source: git history and repository types from curation.</span> Repositories labeled abandoned, with their last commit.</p>
 
 ---
 
@@ -138,4 +167,4 @@ display(Inputs.table(stacks, {
 }));
 ```
 
-<p class="caption">Primary language from each repository's GitHub record. Language history is not collected.</p>
+<p class="caption"><span class="source">Source: GitHub repository records.</span> Primary language of each repository. Language history is not collected.</p>

@@ -2,7 +2,7 @@
 
 ```js
 import {query, axisConfidence, headlines} from "../data/warehouse.js";
-import {abandonedRepos, busFactor, ciHealth, codeAge, couplings, delivery, hotspots, issueTriage, ownershipByPerson, peopleByLabel, singleOwnerFiles} from "../data/metrics.js";
+import {abandonedRepos, busFactor, ciHealth, codeAge, codeHealth, couplings, delivery, findingsBySeverity, hotspots, issueTriage, ownershipByPerson, peopleByLabel, singleOwnerFiles} from "../data/metrics.js";
 import {confidenceLine, count, hours, pct, personNames, when, wrap} from "../data/labels.js";
 
 const target_id = observable.params.target;
@@ -10,15 +10,15 @@ const target = (await query(`SELECT name, description, last_refreshed_at FROM ta
 const config = await FileAttachment("../data/config.json").json();
 const cards = (await headlines(target_id))
   .filter(card => card.section_key !== "working_pattern_signals" || config.allow_working_pattern_card);
-const anchor = Object.fromEntries(cards.map(card => [card.section_key, card.anchor]));
+const card_by_key = Object.fromEntries(cards.map(card => [card.section_key, card]));
 const confidence = Object.fromEntries(await Promise.all(
   ["people", "product", "process"].map(async axis => [axis, await axisConfidence(target_id, axis)])
 ));
 const nameOf = await personNames(target_id);
-const [bus, ownership, labels, single, ages, hot, pairs, abandoned, repo_rows, ci_rows, issue_rows] = await Promise.all([
+const [bus, ownership, labels, single, ages, health, severity, hot, pairs, abandoned, repo_rows, ci_rows, issue_rows] = await Promise.all([
   busFactor(target_id), ownershipByPerson(target_id), peopleByLabel(target_id), singleOwnerFiles(target_id),
-  codeAge(target_id), hotspots(target_id), couplings(target_id), abandonedRepos(target_id),
-  delivery(target_id), ciHealth(target_id), issueTriage(target_id),
+  codeAge(target_id), codeHealth(target_id), findingsBySeverity(target_id), hotspots(target_id), couplings(target_id),
+  abandonedRepos(target_id), delivery(target_id), ciHealth(target_id), issueTriage(target_id),
 ]);
 
 function findings(axis) {
@@ -32,8 +32,8 @@ function area(axis, title, rows) {
   return html`<section class="summary-area">
     <h3><a href="${target_id}/${axis}.html">${title}</a></h3>
     <p class="summary-confidence">${confidenceLine(confidence[axis])}</p>
-    <dl>${rows.filter(Boolean).map(([section_key, label, value, note]) => html`<div class="summary-row">
-      <dt><a href="${target_id}/${axis}.html#${anchor[section_key]}">${label}</a><span>${note}</span></dt>
+    <dl>${rows.filter(Boolean).map(([section_key, label, value, note, source]) => html`<div class="summary-row">
+      <dt><a href="${target_id}/${card_by_key[section_key].axis}.html#${card_by_key[section_key].anchor}">${label}</a><span>${note} · ${source}</span></dt>
       <dd>${value}</dd>
     </div>`)}</dl>
   </section>`;
@@ -54,8 +54,11 @@ const employees = labels.find(row => row.class === "fte")?.people ?? 0;
 const NOUNS = {contractor: ["contractor", "contractors"], bot: ["bot", "bots"], unknown: ["unclassified person", "unclassified people"]};
 const others = labels.filter(row => row.class !== "fte" && row.people > 0)
   .map(row => `${row.people} ${(NOUNS[row.class] ?? [row.class, row.class])[row.people === 1 ? 0 : 1]}`);
-const source_lines = ages.reduce((sum, row) => sum + row.surviving_loc, 0);
-const source_repos = new Set(ages.map(row => row.repo)).size;
+const code_lines = ages.reduce((sum, row) => sum + row.surviving_loc, 0);
+const scored_files = health.reduce((sum, row) => sum + row.file_count, 0);
+const average_health = scored_files ? health.reduce((sum, row) => sum + row.average_health * row.file_count, 0) / scored_files : null;
+const critical = severity.reduce((sum, row) => sum + row.critical, 0);
+const high = severity.reduce((sum, row) => sum + row.high, 0);
 const runs = ci_rows.reduce((sum, row) => sum + row.runs, 0);
 const passing = runs ? ci_rows.reduce((sum, row) => sum + row.runs * row.success_rate, 0) / runs : null;
 const merged = repo_rows.reduce((sum, row) => sum + row.merged_prs, 0);
@@ -70,22 +73,26 @@ display(html`<div class="summary">
     ["bus_factor_map", "Bus factor", lowest ?? "Not established",
       lowest === null
         ? `in all ${bus.length} repositories`
-        : `in ${at_lowest} of ${bus.length} repositories${unestablished ? `; not established in ${unestablished}` : ""}`],
-    ownership.length && ["knowledge_concentration", "Largest owner", pct(ownership[0].owned_loc / owned_total), `${nameOf(ownership[0].person)}, share of surviving lines`],
-    ["contributor_activity_timeline", "Employees", count(employees), others.length ? `plus ${others.join(", ")}` : "no other contributors"],
-    ["hero_dependency_register", "Single-owner files", pct(single.single_owner / single.files), `${count(single.single_owner)} of ${count(single.files)} files`],
+        : `in ${at_lowest} of ${bus.length} repositories${unestablished ? `; not established in ${unestablished}` : ""}`,
+      "git-fame"],
+    ownership.length && ["knowledge_concentration", "Largest owner", pct(ownership[0].owned_loc / owned_total), `${nameOf(ownership[0].person)}, share of all lines`, "git-fame"],
+    ["contributor_activity_timeline", "Employees", count(employees), others.length ? `plus ${others.join(", ")}` : "no other contributors", "git history"],
+    ["hero_dependency_register", "Single-owner files", pct(single.single_owner / single.files), `${count(single.single_owner)} of ${count(single.files)} files that exist today`, "code-maat"],
   ])}
   ${area("product", "Product", [
-    ["code_aging_chart", "Source lines", count(source_lines), `surviving today in ${source_repos} repositories`],
-    ["abandoned_area_register", "Abandoned repositories", count(abandoned.length), `of ${repo_rows.length}`],
-    hot.length && ["hotspot_map", "Most changes to one file", count(hot[0].revisions), wrap(hot[0].path)],
-    ["hidden_coupling_matrix", "Hidden couplings", count(pairs.length), "file pairs that change together"],
+    ["code_aging_chart", "Lines of code", count(code_lines), "code files only, no JSON, YAML, Markdown or text", "git-of-theseus"],
+    ["knowledge_concentration", "Lines in all files", count(owned_total), "includes JSON, Markdown and data files", "git-fame"],
+    ["code_health", "Code health", average_health === null ? "Not collected" : `${average_health.toFixed(1)} of 10`, `average over ${count(scored_files)} files; higher is healthier`, "Repowise"],
+    health.length && ["code_health", "Critical findings", count(critical), `plus ${count(high)} rated high`, "Repowise"],
+    hot.length && ["hotspot_map", "Most changes to one file", count(hot[0].revisions), wrap(hot[0].path), "code-maat"],
+    ["hidden_coupling_matrix", "Hidden couplings", count(pairs.length), "file pairs that change together", "code-maat"],
+    ["abandoned_area_register", "Abandoned repositories", count(abandoned.length), `of ${repo_rows.length}`, "repository labels"],
   ])}
   ${area("process", "Process", [
-    ["ci_health", "CI runs passing", passing === null ? "No runs" : pct(passing), `of ${count(runs)} completed runs`],
-    ["dora_quadrant", "PR open to merge", cycle === null ? "No merged PRs" : hours(cycle), `average over ${count(merged)} merged PRs`],
-    uses_releases && ["dora_quadrant", "GitHub releases", count(releases), "in the last 30 days"],
-    ["issue_triage_health", "Issues open over 90 days", count(stale), issues ? `of ${count(issues)} GitHub issues` : "no GitHub issues recorded"],
+    ["ci_health", "CI runs passing", passing === null ? "No runs" : pct(passing), `of ${count(runs)} completed runs`, "GitHub Actions"],
+    ["dora_quadrant", "PR open to merge", cycle === null ? "No merged PRs" : hours(cycle), `average over ${count(merged)} merged PRs`, "GitHub"],
+    uses_releases && ["dora_quadrant", "GitHub releases", count(releases), "in the last 30 days", "GitHub"],
+    ["issue_triage_health", "Issues open over 90 days", count(stale), issues ? `of ${count(issues)} GitHub issues` : "no GitHub issues recorded", "GitHub Issues"],
   ])}
 </div>`);
 ```
