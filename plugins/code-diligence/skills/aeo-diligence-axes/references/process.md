@@ -12,4 +12,4 @@ PRs, workflows, releases, and issues require a full run, `sources.github.token_e
 
 Narrate observed rates with their population and time span. Do not compare release counts or PR cycle time with DORA deployment thresholds. A first comment is not necessarily a maintainer response. Repository evidence alone does not establish review quality, employee performance, or business risk acceptance.
 
-The working-pattern setting defaults to false. When enabled, describe aggregate repository patterns without identifying individuals or inferring burnout. See [the privacy contract](../../building-dashboard/references/privacy-gate.md).
+The working-pattern setting defaults to false. When enabled, describe aggregate repository patterns without identifying individuals or inferring burnout. See [the privacy contract](../../aeo-diligence-dashboard/references/privacy-gate.md).

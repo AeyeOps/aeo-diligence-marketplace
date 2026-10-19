@@ -29,14 +29,14 @@ With the target's warehouse MCP connected, the native narrator adds evidence-gro
 ## The entire workflow
 
 ```text
-analyst:  /code-diligence:ingesting-target acme --quick
+analyst:  /code-diligence:aeo-diligence-ingest acme --quick
 plugin:   [Sources ingested · available tool results and missing inputs recorded]
 
-analyst:  /code-diligence:asking-diligence acme why is the payments-service a hotspot?
+analyst:  /code-diligence:aeo-diligence-ask acme why is the payments-service a hotspot?
 plugin:   [Cites specific commits, contributors, and measured change counts
            from the warehouse — read-only, evidence-anchored.]
 
-analyst:  /code-diligence:refreshing-target acme    # before the next deal stage
+analyst:  /code-diligence:aeo-diligence-refresh acme    # before the next deal stage
 plugin:   [Incremental fetch + full-tier rerun · analyst-confirmed
            curations preserved.]
 ```
@@ -93,7 +93,7 @@ Each target has its own folder. Copy the example settings into it as `diligence.
 
 ```sh
 mkdir -p ~/data/code-diligence/acme
-cp "$PLUGIN_ROOT/skills/ingesting-target/templates/diligence.example.local.md" \
+cp "$PLUGIN_ROOT/skills/aeo-diligence-ingest/templates/diligence.example.local.md" \
    ~/data/code-diligence/acme/diligence.local.md
 export ACME_DILIGENCE_GH_TOKEN=ghp_...
 ```
@@ -101,7 +101,7 @@ export ACME_DILIGENCE_GH_TOKEN=ghp_...
 The settings file selects GitHub organizations or an existing local clone directory. Run the ingest:
 
 ```text
-/code-diligence:ingesting-target acme --quick
+/code-diligence:aeo-diligence-ingest acme --quick
 ```
 
 To enable the asker and narrator, start the session with the target warehouse selected:
@@ -127,9 +127,9 @@ python -m http.server -d ~/data/code-diligence/acme/dashboard
 
 If you're new to diligence-grade code analysis, the per-axis explainers are the fastest way in — they tell you what each card means and how to read it:
 
-- 👥 [**People axis**](skills/understanding-pe-diligence-axes/references/people.md) — bus factor, knowledge concentration, hero dependencies
-- 🧱 [**Product axis**](skills/understanding-pe-diligence-axes/references/product.md) — hotspots, coupling, code aging, abandoned areas
-- ⚙️ [**Process axis**](skills/understanding-pe-diligence-axes/references/process.md) — delivery indicators, review discipline, CI health
+- 👥 [**People axis**](skills/aeo-diligence-axes/references/people.md) — bus factor, knowledge concentration, hero dependencies
+- 🧱 [**Product axis**](skills/aeo-diligence-axes/references/product.md) — hotspots, coupling, code aging, abandoned areas
+- ⚙️ [**Process axis**](skills/aeo-diligence-axes/references/process.md) — delivery indicators, review discipline, CI health
 
 When a card shows "low confidence," it means the underlying source data was incomplete — usually because an optional tool wasn't installed or the GitHub token lacked scope. The dashboard's Health page tells you exactly which.
 
@@ -142,7 +142,7 @@ When a card shows "low confidence," it means the underlying source data was inco
 <details>
 <summary><strong>Installing the optional analysis tools</strong></summary>
 
-Use the [host installation guidance](skills/ingesting-target/references/tool-prerequisites.md#choose-the-installation-environment) to select compatible tools for macOS or Linux on ARM64 or x86_64, or a Linux execution environment on Windows. Use its package manager or mise for git, uv, Node 22+, Go and Java 17+. Install the optional Python CLIs in isolated uv tool environments:
+Use the [host installation guidance](skills/aeo-diligence-ingest/references/tool-prerequisites.md#choose-the-installation-environment) to select compatible tools for macOS or Linux on ARM64 or x86_64, or a Linux execution environment on Windows. Use its package manager or mise for git, uv, Node 22+, Go and Java 17+. Install the optional Python CLIs in isolated uv tool environments:
 
 ```sh
 uv tool install git-fame
@@ -152,11 +152,11 @@ DO_NOT_TRACK=1 repowise telemetry disable
 repowise telemetry status
 ```
 
-Download `code-maat-1.0.4-standalone.jar` from [release v1.0.4](https://github.com/adamtornhill/code-maat/releases/tag/v1.0.4) into the plugin's `vendor/` directory. Hercules needs a binary for the host architecture or a source checkout build; its replacement directives prevent the versioned `go install` shortcut. The [prerequisite reference](skills/ingesting-target/references/tool-prerequisites.md) contains the verified build steps, the Linux ARM64 Repowise header remedy, every tool's coverage consequence, and the warehouse MCP connection path.
+Download `code-maat-1.0.4-standalone.jar` from [release v1.0.4](https://github.com/adamtornhill/code-maat/releases/tag/v1.0.4) into the plugin's `vendor/` directory. Hercules needs a binary for the host architecture or a source checkout build; its replacement directives prevent the versioned `go install` shortcut. The [prerequisite reference](skills/aeo-diligence-ingest/references/tool-prerequisites.md) contains the verified build steps, the Linux ARM64 Repowise header remedy, every tool's coverage consequence, and the warehouse MCP connection path.
 
 `git-truck` is invoked via `npx -y git-truck@3.3.0` — no global install is needed. Package downloads and its npm update check use the network. Repowise's adapter explicitly disables usage telemetry. Local analyzers, GitHub collection and hosted agent narration have different network boundaries; see the prerequisite reference before describing a run as local-only.
 
-Which tool feeds which card: [`skills/ingesting-target/references/tool-prerequisites.md`](skills/ingesting-target/references/tool-prerequisites.md).
+Which tool feeds which card: [`skills/aeo-diligence-ingest/references/tool-prerequisites.md`](skills/aeo-diligence-ingest/references/tool-prerequisites.md).
 
 </details>
 
@@ -177,9 +177,9 @@ Tests for individual external tools skip cleanly when the binary is absent, so t
 
 **Internals deeper than the README goes:**
 
-- [Per-tool wrapper notes](skills/interpreting-tool-output/SKILL.md) — what each tool does and which warehouse column it populates
-- [Pipeline stages](skills/ingesting-target/references/pipeline-stages.md) — ingest stages and the subsequent narration/build steps
-- [Working-pattern display setting](skills/building-dashboard/references/privacy-gate.md) — the working-pattern card opt-in
+- [Per-tool wrapper notes](skills/aeo-diligence-tool-output/SKILL.md) — what each tool does and which warehouse column it populates
+- [Pipeline stages](skills/aeo-diligence-ingest/references/pipeline-stages.md) — ingest stages and the subsequent narration/build steps
+- [Working-pattern display setting](skills/aeo-diligence-dashboard/references/privacy-gate.md) — the working-pattern card opt-in
 - [Changelog](CHANGELOG.md) — what changed in each release
 
 </details>

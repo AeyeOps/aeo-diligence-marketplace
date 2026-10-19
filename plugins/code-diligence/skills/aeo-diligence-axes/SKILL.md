@@ -1,5 +1,5 @@
 ---
-name: understanding-pe-diligence-axes
+name: aeo-diligence-axes
 description: Reference for the People / Product / Process taxonomy, card-to-table mappings, confidence model, and narrative-writing contract (headline-first, cite warehouse numbers, hedge on low confidence). Use when interpreting what a dashboard card measures, writing or updating narrative rows, understanding confidence classifications, or avoiding hallucination in PE write-ups — not for querying the warehouse or executing tool commands.
 ---
 
@@ -33,7 +33,7 @@ This is a table-presence score, not repository coverage, result accuracy, or agr
 ## Source-of-truth links
 
 - Card-to-table-to-narrative mapping per axis: [people](references/people.md), [product](references/product.md), [process](references/process.md)
-- Tool-to-table mapping (what each wrapped tool populates): `skills/interpreting-tool-output/SKILL.md`
+- Tool-to-table mapping (what each wrapped tool populates): `skills/aeo-diligence-tool-output/SKILL.md`
 - Canonical taxonomy seeded into the warehouse at ingest: `axes_taxonomy` table, loaded from `src/code_diligence/narration/taxonomy.py`
 
 Update the owning axis reference when a real query shows that a card or source mapping has changed.

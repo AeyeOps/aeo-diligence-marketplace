@@ -59,7 +59,7 @@ Per repo: `pr_metrics`, `actions_metrics`, `release_metrics`, `issue_metrics`. D
 
 ## Stage 8 — Axis confidence + taxonomy
 
-`compute_axis_confidence(...)` writes `axis_confidence` (per-axis signal completeness). `load_taxonomy_into_warehouse(...)` writes the canonical card list to `axes_taxonomy`. See `skills/understanding-pe-diligence-axes/SKILL.md` for the card map.
+`compute_axis_confidence(...)` writes `axis_confidence` (per-axis signal completeness). `load_taxonomy_into_warehouse(...)` writes the canonical card list to `axes_taxonomy`. See `skills/aeo-diligence-axes/SKILL.md` for the card map.
 
 ## Stage 9 — Tooling versions and completion
 

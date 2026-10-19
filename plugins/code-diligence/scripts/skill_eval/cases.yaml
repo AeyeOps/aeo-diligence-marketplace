@@ -11,71 +11,71 @@
 #   - 1 negative (close-but-wrong; should map to a sibling or null)
 
 cases:
-  # --- asking-diligence ---
+  # --- aeo-diligence-ask ---
   - id: ask-slash
-    prompt: "/code-diligence:asking-diligence acme why is the payments-service a hotspot?"
-    expected: asking-diligence
+    prompt: "/code-diligence:aeo-diligence-ask acme why is the payments-service a hotspot?"
+    expected: aeo-diligence-ask
   - id: ask-natural
     prompt: "Drill into a specific finding on the acme target's dashboard without recomputing the warehouse."
-    expected: asking-diligence
+    expected: aeo-diligence-ask
   - id: ask-followup
     prompt: "I want to ask follow-up questions about why one repo carries bus-factor risk."
-    expected: asking-diligence
+    expected: aeo-diligence-ask
 
-  # --- building-dashboard ---
+  # --- aeo-diligence-dashboard ---
   - id: dash-slash
-    prompt: "/code-diligence:building-dashboard acme"
-    expected: building-dashboard
+    prompt: "/code-diligence:aeo-diligence-dashboard acme"
+    expected: aeo-diligence-dashboard
   - id: dash-natural
     prompt: "Render the Observable dashboard for the acme target."
-    expected: building-dashboard
+    expected: aeo-diligence-dashboard
   - id: dash-privacy
     prompt: "Build the diligence dashboard but keep the working-pattern card off."
-    expected: building-dashboard
+    expected: aeo-diligence-dashboard
 
-  # --- ingesting-target ---
+  # --- aeo-diligence-ingest ---
   - id: ingest-slash
-    prompt: "/code-diligence:ingesting-target acme --quick"
-    expected: ingesting-target
+    prompt: "/code-diligence:aeo-diligence-ingest acme --quick"
+    expected: aeo-diligence-ingest
   - id: ingest-natural
     prompt: "Run the full code-diligence ingest pipeline on the acme org's repos."
-    expected: ingesting-target
+    expected: aeo-diligence-ingest
   - id: ingest-firsttime
     prompt: "I want to set up code-diligence on a new target for the first time."
-    expected: ingesting-target
+    expected: aeo-diligence-ingest
 
-  # --- interpreting-tool-output ---
+  # --- aeo-diligence-tool-output ---
   - id: interp-tool
     prompt: "I'm looking at raw code-maat coupling output and I want to know which warehouse table it lands in."
-    expected: interpreting-tool-output
+    expected: aeo-diligence-tool-output
   - id: interp-mismatch
     prompt: "git-fame and git-truck disagree on per-author LOC for a repo — which one should I trust?"
-    expected: interpreting-tool-output
+    expected: aeo-diligence-tool-output
   - id: interp-hercules
     prompt: "Where does hercules burndown data get persisted in the diligence warehouse?"
-    expected: interpreting-tool-output
+    expected: aeo-diligence-tool-output
 
-  # --- refreshing-target ---
+  # --- aeo-diligence-refresh ---
   - id: refresh-slash
-    prompt: "/code-diligence:refreshing-target acme"
-    expected: refreshing-target
+    prompt: "/code-diligence:aeo-diligence-refresh acme"
+    expected: aeo-diligence-refresh
   - id: refresh-natural
     prompt: "The acme target is already ingested — I want to pick up new commits and rerun the tools without resetting state."
-    expected: refreshing-target
+    expected: aeo-diligence-refresh
   - id: refresh-followup
     prompt: "How do I incrementally update an already-ingested code-diligence target before the next deal stage?"
-    expected: refreshing-target
+    expected: aeo-diligence-refresh
 
-  # --- understanding-pe-diligence-axes ---
+  # --- aeo-diligence-axes ---
   - id: axes-people
     prompt: "What does the People axis cover in PE technical diligence?"
-    expected: understanding-pe-diligence-axes
+    expected: aeo-diligence-axes
   - id: axes-narration
     prompt: "Help me write the narrative for the hotspot-map card without hallucinating numbers."
-    expected: understanding-pe-diligence-axes
+    expected: aeo-diligence-axes
   - id: axes-confidence
     prompt: "What does it mean when the dashboard says a Process-axis card has 'low confidence'?"
-    expected: understanding-pe-diligence-axes
+    expected: aeo-diligence-axes
 
   # --- Negative controls (should NOT trigger any diligence skill) ---
   - id: neg-unrelated
@@ -90,34 +90,34 @@ cases:
 
   # --- Adversarial cases (boundary probes; see review.md) ---
 
-  # (a) warehouse internals — asker vs interpreting-tool-output vs axes
+  # (a) warehouse internals — asker vs aeo-diligence-tool-output vs axes
   - id: adv-warehouse-query
     prompt: "Query the ownership_share table to find which source reported different LOC for this repo."
-    expected: interpreting-tool-output
+    expected: aeo-diligence-tool-output
     rationale: "Warehouse table + source disagreement; could misroute to asker or axes."
   - id: adv-missing-tool-data
     prompt: "Why is the coupling_pairs table empty when I ran the full ingest?"
-    expected: interpreting-tool-output
+    expected: aeo-diligence-tool-output
     rationale: "Direct warehouse-table question; could confuse with axes or asker."
 
   # (b) card vs axis boundary
   - id: adv-card-axes-boundary
     prompt: "Explain what the 'hidden coupling' card is trying to measure in the Product axis."
-    expected: understanding-pe-diligence-axes
-    rationale: "Card name + axis + measurement intent; could route to interpreting-tool-output."
+    expected: aeo-diligence-axes
+    rationale: "Card name + axis + measurement intent; could route to aeo-diligence-tool-output."
   - id: adv-write-card-narrative
     prompt: "I need to update the narrative row for the 'bus factor' card in the people axis."
-    expected: understanding-pe-diligence-axes
+    expected: aeo-diligence-axes
     rationale: "Narrative writing is in axes; could misroute to asker (read-only) or refreshing."
 
   # (c) regenerate / recompute probes
   - id: adv-regenerate-dashboard
     prompt: "Regenerate the dashboard with updated narrative text."
-    expected: building-dashboard
+    expected: aeo-diligence-dashboard
     rationale: "'Regenerate' could confuse refresh (reruns tools) with dashboard (rebuilds UI)."
   - id: adv-recompute-warehouse
     prompt: "The acme warehouse already exists — I need to recompute it after adding new repos to its existing config."
-    expected: refreshing-target
+    expected: aeo-diligence-refresh
     rationale: "'Recompute' on an existing target with config edits could misroute to ingest; refresh is the incremental path."
 
   # (d) generic terms that should NOT fire

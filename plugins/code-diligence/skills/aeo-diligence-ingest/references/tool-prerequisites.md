@@ -67,7 +67,7 @@ When no external traffic is required, verify the actual analyzer invocation in t
 | `java` (≥17) and the JAR below | Use the host's package manager, or `mise use --global java@temurin-17.0.20+8` when mise manages tools; verify `java -version` and `java -jar <jar> --help` | No hidden-coupling pairs or code-maat file-owner enrichment; file-owner estimates remain unavailable. |
 | `hercules` | Native binary from [v10.7.2](https://github.com/src-d/hercules/releases/tag/v10.7.2), or build below; verify `hercules version` | No historical code-survival series; current code age from git-of-theseus cannot show that trajectory. |
 | `repowise` | `uv tool install repowise`; verify `repowise --version`, disable telemetry as above | No persisted health/dead-code findings for analyst queries. These are separate evidence, not inputs automatically combined into dashboard charts. |
-| Native warehouse MCP | Configure the existing stdio server for the target; see [connection boundary](../../asking-diligence/references/asker-boundary.md) | No native asker queries or persisted agent narration. Metrics and dashboard rendering can still work; an empty narrative is not an analytical finding. |
+| Native warehouse MCP | Configure the existing stdio server for the target; see [connection boundary](../../aeo-diligence-ask/references/asker-boundary.md) | No native asker queries or persisted agent narration. Metrics and dashboard rendering can still work; an empty narrative is not an analytical finding. |
 
 ## Vendored
 

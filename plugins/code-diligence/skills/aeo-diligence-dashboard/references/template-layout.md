@@ -1,6 +1,6 @@
 # Observable template layout
 
-Lives at: `skills/building-dashboard/templates/observable/` (relative to plugin root).
+Lives at: `skills/aeo-diligence-dashboard/templates/observable/` (relative to plugin root).
 
 ## Tree (tracked content only)
 
@@ -52,6 +52,6 @@ Read via `FileAttachment("../../data/config.json").json()` in `targets/[target]/
 ## Adding a new card
 
 1. Add the card markdown to the appropriate axis page (`targets/[target]/<axis>.md`).
-2. If the card needs SQL, query against existing warehouse tables (see `skills/understanding-pe-diligence-axes/SKILL.md` for the axis → table map).
+2. If the card needs SQL, query against existing warehouse tables (see `skills/aeo-diligence-axes/SKILL.md` for the axis → table map).
 3. If the card needs a new warehouse table, add it to `src/code_diligence/warehouse/schema.py` and bump `SCHEMA_VERSION`, then register a migration in `migrations.py`.
 4. Add a narrative section_key to `axes_taxonomy` so the narrator picks it up.

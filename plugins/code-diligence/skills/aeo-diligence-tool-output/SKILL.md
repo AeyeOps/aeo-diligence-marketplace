@@ -1,5 +1,5 @@
 ---
-name: interpreting-tool-output
+name: aeo-diligence-tool-output
 description: Reference for mapping raw tool output (code-maat, hercules, git-of-theseus, git-fame, git-truck, repowise) to warehouse tables, tool-specific quirks, and cross-check rules. Use when debugging warehouse mismatches, investigating why two tools report different values for the same metric, deciding which canonical source to trust, or querying a specific warehouse table to compare per-tool entries — distinct from open-ended dashboard drill-down (asker) or writing narrative copy (axes).
 ---
 

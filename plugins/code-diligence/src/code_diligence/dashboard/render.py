@@ -10,7 +10,7 @@ from pathlib import Path
 import duckdb
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[3]
-TEMPLATE_DIR = PLUGIN_ROOT / "skills" / "building-dashboard" / "templates" / "observable"
+TEMPLATE_DIR = PLUGIN_ROOT / "skills" / "aeo-diligence-dashboard" / "templates" / "observable"
 
 
 def render_dashboard(
