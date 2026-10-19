@@ -1,36 +1,29 @@
-# ${observable.params.target}
+# ${target.name}
 
 ```js
-import { query, axisConfidence } from "../data/warehouse.js";
+import {query, axisConfidence} from "../data/warehouse.js";
+import {missingSources, when} from "../data/labels.js";
 
 const target_id = observable.params.target;
 const target = (await query(`SELECT name, description, last_refreshed_at FROM targets WHERE target_id = ?`, [target_id]))[0];
-const axes = ["people", "product", "process"];
-const confidences = Object.fromEntries(
-  await Promise.all(axes.map(async a => [a, await axisConfidence(target_id, a)]))
-);
+const axes = await Promise.all(["people", "product", "process"].map(async axis => {
+  const confidence = await axisConfidence(target_id, axis);
+  return {axis, confidence_class: confidence.confidence_class, missing: missingSources(confidence).join(", ") || "None"};
+}));
 ```
 
-**${target.name}** — last refreshed ${target.last_refreshed_at ? new Date(target.last_refreshed_at).toLocaleString() : null ?? "never"}
-
-${target.description ?? ""}
-
-## Confidence
+<p class="subtitle">${target.description ?? ""}${target.description ? " · " : ""}Refreshed ${when(target.last_refreshed_at) || "never"}</p>
 
 ```js
-display(html`<div style="display:flex; gap:1rem;">
-  ${axes.map(a => html`<div style="border:1px solid #ccc; padding:0.5rem 1rem; border-radius:4px;">
-    <strong>${a}</strong><br>
-    confidence: <span style="color:${confidences[a].confidence_class === 'high' ? 'green' : confidences[a].confidence_class === 'medium' ? 'orange' : 'red'}">${confidences[a].confidence_class}</span><br>
-    completeness: ${confidences[a].signal_completeness_pct?.toFixed?.(0) ?? "—"}%
-  </div>`)}
-</div>`);
+display(Inputs.table(axes, {
+  columns: ["axis", "confidence_class", "missing"],
+  header: {axis: "Area", confidence_class: "Confidence", missing: "Missing sources"},
+  format: {
+    axis: axis => html`<a href="${target_id}/${axis}.html">${axis[0].toUpperCase() + axis.slice(1)}</a>`,
+    confidence_class: value => value[0].toUpperCase() + value.slice(1),
+  },
+  select: false,
+}));
 ```
 
-## Explore the evidence
-
-```js
-display(html`<nav aria-label="Target sections"><ul>${["people", "product", "process", "repos", "curation", "health"].map(section => html`<li><a href="${target_id}/${section}.html">${section[0].toUpperCase() + section.slice(1)}</a></li>`)}</ul></nav>`);
-```
-
-[All targets](/index.html)
+<p class="caption">Confidence reflects how many expected sources are present for each area.</p>
