@@ -144,16 +144,6 @@ export function ciHealth(targetId) {
   `, [targetId]);
 }
 
-export function ciByMonth(targetId) {
-  return query(`
-    SELECT DATE_TRUNC('month', am.ran_at) AS month, COUNT(*) AS runs,
-           AVG(CASE WHEN am.conclusion='success' THEN 1.0 ELSE 0.0 END) AS success_rate
-    FROM actions_metrics am JOIN repos r ON r.repo_id = am.repo_id
-    WHERE r.target_id = ? AND am.conclusion IS NOT NULL
-    GROUP BY 1 ORDER BY 1
-  `, [targetId]);
-}
-
 export function issueTriage(targetId) {
   return query(`
     SELECT r.name AS repo,
