@@ -35,7 +35,7 @@ if (headline.some(row => row.abandoned_repos > 0)) display(Plot.plot({
   x: { label: "Abandoned repos" },
   marginLeft: 250,
 }));
-else display(html`<p>No repositories are currently classified as abandoned in these targets.</p>`);
+else display(html`<p>No repository in these targets is labeled abandoned.</p>`);
 display(Inputs.table(headline.map(row => ({
   ...row,
   avg_top_owner_pct: row.avg_top_owner_pct === null ? "Not available" : row.avg_top_owner_pct,

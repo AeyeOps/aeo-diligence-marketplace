@@ -16,7 +16,9 @@ Every dashboard card has a paired narrative row in `narratives` keyed by `(targe
 1. **Lead with the headline finding**, not the methodology. "Three repos depend on a single committer for >70% of code knowledge" beats "Bus factor was computed using ownership_share aggregated by repo."
 2. **Cite a specific number from the warehouse.** For an empty result, check the underlying tables, filters, curations and collection failures. Say "data unavailable" when evidence is missing; otherwise describe that no records match the examined scope. Never fabricate a measurement or treat an empty result as proof of no risk.
 3. **Hedge when confidence is low.** If `axis_confidence.confidence_class = 'low'` for the axis, prefix the headline with "Limited signal:" and explain the evidence gap. The `missing_sources` JSON lists empty expected tables; it does not establish why they are empty.
-4. **Cross-reference cards within the axis but not across axes.** "See also: knowledge concentration heatmap" is fine; reaching from People into Product muddles the partner's mental model.
+4. **Cross-reference cards within the axis but not across axes.** "See also: knowledge concentration" is fine; reaching from People into Product muddles the partner's mental model.
+
+5. **Write plain statements.** State each fact once, in the reader's words, with no setup or closing line that restates it. Leave out contrast framing ("not X but Y", "X, not Y") unless it corrects a reading the card invites, dashes, chains of semicolons, inflated words such as crucial, notably, robust, highlights, underscores and landscape, and references to "this card" or the dashboard.
 
 ## Confidence model
 

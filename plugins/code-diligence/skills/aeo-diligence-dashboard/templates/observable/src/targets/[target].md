@@ -4,6 +4,7 @@
 import {query, axisConfidence, headlines} from "../data/warehouse.js";
 import {abandonedRepos, busFactor, ciHealth, codeAge, codeHealth, couplings, delivery, hotspots, issueTriage, ownershipByPerson, peopleByLabel, securityMonthly, singleOwnerFiles} from "../data/metrics.js";
 import {confidenceLine, count, day, hours, pct, personNames, severityLabel, when, wrap} from "../data/labels.js";
+import {securityChart} from "../data/charts.js";
 
 const target_id = observable.params.target;
 const target = (await query(`SELECT name, description, last_refreshed_at FROM targets WHERE target_id = ?`, [target_id]))[0];
@@ -65,10 +66,6 @@ const releases = repo_rows.reduce((sum, row) => sum + row.releases_l30d, 0);
 const uses_releases = repo_rows.some(row => row.releases_total > 0);
 const issues = issue_rows.reduce((sum, row) => sum + row.total_issues, 0);
 const stale = issue_rows.reduce((sum, row) => sum + row.stale_open, 0);
-const latest_month = security.length ? +security.at(-1).month : null;
-const current = security.filter(row => +row.month === latest_month);
-const open_now = names => current.filter(row => names.includes(row.severity)).reduce((sum, row) => sum + row.closing, 0);
-const latest_read = current.length ? new Date(Math.max(...current.map(row => +row.last_read_at))) : null;
 const coverage = Array.from(
   security.reduce((starts, row) => starts.set(row.severity, Math.min(starts.get(row.severity) ?? Infinity, +row.first_read_at)), new Map()),
   ([sev, start]) => ({sev, start})
@@ -93,7 +90,7 @@ display(html`<div class="summary">
   ${area("product", "Product", [
     ["code_aging_chart", "Lines of code", count(code_lines), "code files only, no JSON, YAML, Markdown or text", "git-of-theseus"],
     ["knowledge_concentration", "Lines in all files", count(owned_total), "includes JSON, Markdown and data files", "git-fame"],
-    ["code_health", "Code health", average_health === null ? "Not collected" : `${average_health.toFixed(1)} of 10`, `average over ${count(scored_files)} files; higher is healthier`, "Repowise"],
+    ["code_health", "Code health", average_health === null ? "Not collected" : `${average_health.toFixed(1)} of 10`, `average over ${count(scored_files)} files, higher is healthier`, "Repowise"],
     hot.length && ["hotspot_map", "Most changes to one file", count(hot[0].revisions), wrap(hot[0].path), "code-maat"],
     ["hidden_coupling_matrix", "Hidden couplings", count(pairs.length), "file pairs that change together", "code-maat"],
     ["abandoned_area_register", "Abandoned repositories", count(abandoned.length), `of ${repo_rows.length}`, null],
@@ -104,12 +101,11 @@ display(html`<div class="summary">
     uses_releases && ["dora_quadrant", "GitHub releases", count(releases), "in the last 30 days", "GitHub"],
     ["issue_triage_health", "Issues open over 90 days", count(stale), issues ? `of ${count(issues)} GitHub issues` : "no GitHub issues recorded", "GitHub Issues"],
   ])}
-  ${security.length ? area("process", "Security", [
-    ["security_findings", "Fixable critical open", count(open_now(["CRITICAL"])), `at the latest read, ${day(latest_read)}`, "AWS Inspector"],
-    ["security_findings", "Fixable high open", count(open_now(["HIGH"])), "findings with a fix available", "AWS Inspector"],
-    ["security_findings", "Fixable medium and low open", count(open_now(["MEDIUM", "LOW"])), "findings with a fix available", "AWS Inspector"],
-    ["security_findings", "Resolved or retired this month", count(current.reduce((sum, row) => sum + row.removed, 0)), "patched or on retired resources", "AWS Inspector"],
-  ], coverage_line.charAt(0).toUpperCase() + coverage_line.slice(1)) : ""}
+  ${security.length ? html`<section class="summary-area summary-wide">
+    <h3><a href="${target_id}/process.html#${card_by_key.security_findings.anchor}">Security</a></h3>
+    <p class="summary-confidence"><b class="summary-source">AWS Inspector</b> · fixable findings per month · ${coverage_line}</p>
+    ${securityChart(security, {width: Math.min(width, 1040), height: 220})}
+  </section>` : ""}
 </div>`);
 ```
 

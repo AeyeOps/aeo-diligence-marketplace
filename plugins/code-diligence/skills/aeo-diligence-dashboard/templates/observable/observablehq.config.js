@@ -35,6 +35,7 @@ export default {
 .wrap { white-space: normal; overflow-wrap: anywhere; }
 .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.5rem 2rem; max-width: 1040px; }
 .summary-area h3 { font-size: 1.05rem; margin: 0; }
+.summary-wide { grid-column: 1 / -1; }
 .summary-confidence { color: var(--theme-foreground-muted); font-size: 0.85rem; margin: 0.15rem 0 0.5rem; }
 .summary-area dl { margin: 0; }
 .summary-row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: 0.55rem 0; border-top: 1px solid var(--theme-foreground-faintest); }

@@ -14,6 +14,7 @@ Lives at: `skills/aeo-diligence-dashboard/templates/observable/` (relative to pl
         ├── compare.md             # cross-target compare page (page template, not a separate skill)
         ├── index.md               # portfolio landing
         ├── data/
+        │   ├── charts.js                # charts shared by an area page and the overview summary
         │   ├── curation-counts.txt.js   # data loader: reads YAML from DILIGENCE_CURATION_DIR
         │   ├── labels.js                # number, date, person and source-name formatting
         │   ├── metrics.js               # card queries shared by the area pages and the overview summary

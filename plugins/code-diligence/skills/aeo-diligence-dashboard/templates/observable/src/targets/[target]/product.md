@@ -54,7 +54,7 @@ if (severity.length) display(Inputs.table(severity, {
 }));
 ```
 
-<p class="caption"><span class="source">Source: Repowise.</span> Scores run from 1 to 10; higher is healthier. Hotspot health scores the most-changed files. Findings are code-quality markers such as complex or long methods, counted by Repowise's own rating; they are not security vulnerabilities. Dead code counts unused exports and unreachable files.</p>
+<p class="caption"><span class="source">Source: Repowise.</span> Scores run from 1 to 10, and higher is healthier. Hotspot health scores the most-changed files. Findings are code-quality markers, such as complex or long methods, counted by Repowise's own rating. They are not security findings. Dead code counts unused exports and unreachable files.</p>
 
 ---
 
@@ -147,7 +147,7 @@ if (abandoned.length) display(Inputs.table(abandoned, {
 }));
 ```
 
-<p class="caption"><span class="source">Source: git history and repository types from curation.</span> Repositories labeled abandoned, with their last commit.</p>
+<p class="caption"><span class="source">Source: git history and repository labels.</span> Repositories labeled abandoned, with their last commit.</p>
 
 ---
 
