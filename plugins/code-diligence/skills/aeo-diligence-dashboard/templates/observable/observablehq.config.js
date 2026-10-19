@@ -24,7 +24,7 @@ export default {
     `/targets/${target}`,
     ...sections.map(section => `/targets/${target}/${section}`)
   ]),
-  theme: ["air", "near-midnight"],
+  theme: "air",
   head: `<style>
 :root { --serif: var(--sans-serif); }
 #observablehq-main h1 { font-size: 2rem; margin-bottom: 0.25rem; }
