@@ -55,7 +55,7 @@ Each heuristic writes a YAML to `storage.curation_dir/` with `status: needs_revi
 
 ## Stage 7 — GitHub platform pass (full tier only, any `sources.github_platform` switch true)
 
-Per repo: `pr_metrics`, `actions_metrics`, `release_metrics`, `issue_metrics`. Driven by the token from `sources.github.token_env`. Local checkouts take their GitHub repository from the `origin` URL, so platform data does not require organization discovery.
+Per repo: `pr_metrics`, `actions_metrics`, `release_metrics`, `issue_metrics`. Driven by the token from `sources.github.token_env`. Local checkouts take their GitHub repository from the `origin` URL, and their language, default branch and archived state from that repository's record, so platform data does not require organization discovery. Workflow runs are grouped by their workflow file path, because a run's display name changes when a workflow sets `run-name`.
 
 ## Stage 8 — Axis confidence + taxonomy
 

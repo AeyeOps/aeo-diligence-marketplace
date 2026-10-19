@@ -4,7 +4,7 @@
 |---|---|
 | `dora_quadrant` | Repository delivery indicators: releases in the last 30 days, average PR cycle time, and workflow failure fraction. These are not DORA metrics: production deployment and incident data are absent. |
 | `review_discipline` | PR review latency, distinct reviewer count, self-merge fraction among merged PRs with known merger, and merged PRs without approvals. |
-| `ci_health` | Completed workflow outcomes and durations by repository and workflow. |
+| `ci_health` | Completed workflow outcomes and durations by repository and workflow file. |
 | `issue_triage_health` | Average time to first issue comment and count of issues still open after 90 days. |
 | `working_pattern_signals` | Repository-level commit day/hour distribution, only when `heuristics.allow_working_pattern_card` is true. |
 

@@ -15,6 +15,7 @@ def test_fetch_and_persist_actions(httpx_mock, tmp_path: Path) -> None:
         json={"workflow_runs": [{
             "id": 42,
             "name": "CI",
+            "path": ".github/workflows/ci.yml",
             "created_at": "2026-01-01T00:00:00Z",
             "updated_at": "2026-01-01T00:10:00Z",
             "conclusion": "success",
@@ -34,6 +35,6 @@ def test_fetch_and_persist_actions(httpx_mock, tmp_path: Path) -> None:
 
     assert len(rows) == 1
     assert rows[0][0] == 42
-    assert rows[0][1] == "CI"
+    assert rows[0][1] == ".github/workflows/ci.yml"
     assert rows[0][2] == "success"
     assert rows[0][3] == pytest.approx(600.0)

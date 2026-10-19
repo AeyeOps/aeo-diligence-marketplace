@@ -41,6 +41,12 @@ def _infer_full_name(repo_dir: Path) -> str:
     return repo_dir.name
 
 
+def _fetch_github_repo(full_name: str, token: str) -> dict:
+    """Return GitHub's repository record for a local checkout's origin."""
+    with GitHubClient(token=token) as client:
+        return client.get(f"/repos/{full_name}").json()
+
+
 def _collect_tooling_versions(*, full: bool) -> dict[str, str]:
     """Report tool versions and missing prerequisites for the requested tier."""
     from importlib.metadata import PackageNotFoundError
@@ -155,12 +161,21 @@ def ingest(
                 relative_name = repo_dir.relative_to(repo_root).as_posix()
                 repo_id = f"{s.target_id}/{relative_name}"
                 progress.update(task, description=f"ingesting {repo_id}")
+                github_repo = metadata.get(repo_dir)
+                if github_repo is None and platform_pass:
+                    assert token is not None
+                    github_repo = isolated(
+                        conn, target_id=s.target_id, repo_id=repo_id,
+                        tool="github-repo", tool_version=None,
+                        fn=lambda d=repo_dir, t=token: _fetch_github_repo(_infer_full_name(d), t),
+                    )
+                repo_meta = github_repo or {}
                 upsert_repo(
                     conn, repo_id=repo_id, target_id=s.target_id,
                     name=relative_name, source_url=metadata.get(repo_dir, {}).get("clone_url", str(repo_dir)),
-                    default_branch=metadata.get(repo_dir, {}).get("default_branch"),
-                    language_primary=metadata.get(repo_dir, {}).get("language"),
-                    is_archived=metadata.get(repo_dir, {}).get("archived", False),
+                    default_branch=repo_meta.get("default_branch"),
+                    language_primary=repo_meta.get("language"),
+                    is_archived=repo_meta.get("archived", False),
                 )
                 if repo_dir not in metadata:
                     remote = subprocess.run(

@@ -22,7 +22,7 @@ def fetch_and_persist_actions(
             conn.execute(
                 "INSERT INTO actions_metrics (repo_id, workflow_name, run_id, ran_at, conclusion, duration_seconds) "
                 "VALUES (?, ?, ?, ?, ?, ?)",
-                [repo_id, run.get("name", ""), run["id"], ran_at, run.get("conclusion"), duration],
+                [repo_id, run["path"], run["id"], ran_at, run.get("conclusion"), duration],
             )
 
 def _parse_iso(s: str | None) -> datetime | None:

@@ -15,7 +15,7 @@ The wrapper shells out to:
     git-of-theseus-analyze <repo> --outdir <tmpdir>
 
 - `--outdir` directs git-of-theseus to write its analysis artifacts (we only consume `cohorts.json`) to a `tempfile.TemporaryDirectory` that the wrapper cleans up.
-- No other flags are set. In particular, `--follow-renames` is **not** passed — renames mid-life appear as deleted-then-added across cohort labels.
+- No other flags are set. `--all-filetypes` is not passed, so only file types git-of-theseus recognizes as source are counted; hercules counts every tracked file. `--follow-renames` is **not** passed — renames mid-life appear as deleted-then-added across cohort labels.
 - Timeout: 600s. Non-zero exit raises `GitOfTheseusError`; `isolated()` converts it to a `tool_failures` row of class `runtime`.
 
 ## What it does
