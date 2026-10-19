@@ -64,7 +64,8 @@ const narr2 = await narrative(target_id, "process", "ci_health");
 display(Inputs.table(ci, {
   columns: ["workflow_name", "repo", "runs", "success_rate", "avg_duration_s"],
   header: {workflow_name: "Workflow", repo: "Repository", runs: "Runs", success_rate: "Passing", avg_duration_s: "Average duration"},
-  format: {workflow_name: wrap, runs: count, success_rate: pct, avg_duration_s: duration},
+  format: {workflow_name: wrap, repo: wrap, runs: count, success_rate: pct, avg_duration_s: duration},
+  width: {workflow_name: "36%"},
 }));
 ```
 

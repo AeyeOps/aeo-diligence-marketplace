@@ -56,15 +56,35 @@ export async function query(sql, params = []) {
   ));
 }
 
+const NO_NARRATIVE = "No narrative has been generated for this card.";
+
+function inline(text) {
+  const span = document.createElement("span");
+  span.innerHTML = markdown.renderInline(text);
+  return span;
+}
+
 export async function narrative(targetId, axis, sectionKey) {
   const rows = await query(
     "SELECT body_md, tier FROM narratives WHERE target_id = ? AND axis = ? AND section_key = ?",
     [targetId, axis, sectionKey]
   );
-  const row = rows[0] ?? {body_md: "No narrative has been generated for this card.", tier: null};
-  const body = document.createElement("span");
-  body.innerHTML = markdown.renderInline(row.body_md);
-  return {body, tier: row.tier};
+  const row = rows[0] ?? {body_md: NO_NARRATIVE, tier: null};
+  return {body: inline(row.body_md), tier: row.tier};
+}
+
+export async function headlines(targetId) {
+  const rows = await query(`
+    SELECT t.axis, t.section_key, t.title, n.body_md
+    FROM axes_taxonomy t
+    LEFT JOIN narratives n ON n.target_id = ? AND n.axis = t.axis AND n.section_key = t.section_key
+    ORDER BY t.rowid
+  `, [targetId]);
+  return rows.map(row => {
+    const body = row.body_md ?? NO_NARRATIVE;
+    const first = body.match(/^.+?[.!?](?=\s|$)/s)?.[0] ?? body;
+    return {...row, anchor: row.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""), headline: inline(first)};
+  });
 }
 
 export async function axisConfidence(targetId, axis) {

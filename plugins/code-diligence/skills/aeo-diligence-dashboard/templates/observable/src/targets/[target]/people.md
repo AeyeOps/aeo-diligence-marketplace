@@ -54,7 +54,7 @@ display(Inputs.table(bus_factor_rows.map(row => ({...row, bus_factor_estimate: r
 
 ---
 
-## Knowledge concentration heatmap
+## Knowledge concentration
 
 <p class="finding">${narr2.body}</p>
 
@@ -80,7 +80,7 @@ const narr2 = await narrative(target_id, "people", "knowledge_concentration");
 display(Plot.plot({
   marks: [
     Plot.barX(conc_rows, {x: "top1_pct", y: "repo", sort: {y: "-x"}, fill: "var(--theme-foreground-focus)", tip: true}),
-    Plot.text(conc_rows, {x: "top1_pct", y: "repo", text: row => `${row.top1_pct.toFixed(1)}% · ${nameOf(row.top_owner)}`, textAnchor: "start", dx: 6, fill: "currentColor"}),
+    Plot.text(conc_rows, {x: "top1_pct", y: "repo", text: row => `${+row.top1_pct.toFixed(2)}% · ${nameOf(row.top_owner)}`, textAnchor: "start", dx: 6, fill: "currentColor"}),
     Plot.ruleX([0]),
   ],
   x: {domain: [0, 100], label: "Largest contributor's share of surviving lines (%)"},
@@ -127,7 +127,7 @@ display(Plot.plot({
 }));
 ```
 
-<p class="caption">Distinct people committing each month, after identity merges, by their confirmed label.</p>
+<p class="caption">Distinct people committing each month, after identity merges, by contributor label.</p>
 
 ---
 
@@ -203,7 +203,7 @@ const narr5 = await narrative(target_id, "people", "hero_dependency_register");
 display(Inputs.table(heroes, {
   columns: ["file", "repo", "owner", "owned_pct", "revisions"],
   header: {file: "File", repo: "Repository", owner: "Owner", owned_pct: "Owner share", revisions: "Changes"},
-  format: {file: wrap, repo: wrap, owner: value => nameOf(value), owned_pct: pct, revisions: count},
+  format: {file: wrap, repo: wrap, owner: value => wrap(nameOf(value)), owned_pct: pct, revisions: count},
   width: {file: "42%"},
 }));
 ```

@@ -23,13 +23,14 @@ You will receive:
 
 ## Procedure
 
-1. Read the matching `axes_taxonomy` and `axis_confidence` rows through the `diligence-warehouse` MCP. Use the parent's `metric_context`, `describe_table` and `read_query` to fetch the card's actual metrics for this target. Preserve the dashboard's filters and denominators. Cite specific numbers from your queries.
-2. Write a 2-3 sentence narrative in plain English. Lead with the headline finding for this card, then a supporting concrete number. Avoid hedging unless `axis_confidence` is `low` — in which case explicitly say so.
+1. Read the matching `axes_taxonomy` and `axis_confidence` rows through the `diligence-warehouse` MCP. As an installed skill its tools are `mcp__diligence-warehouse__list_tables`, `describe_table`, `read_query` and `write_narrative`; the frontmatter names are the plugin's. Use the parent's `metric_context`, `describe_table` and `read_query` to fetch the card's actual metrics for this target. Preserve the dashboard's filters and denominators. Cite specific numbers from your queries.
+2. Write a 2-3 sentence narrative in plain English. The first sentence states the headline finding on its own, because the overview page shows only that sentence; follow it with a supporting concrete number. Avoid hedging unless `axis_confidence` is `low` — in which case explicitly say so.
 3. Persist via `write_narrative(target_id, axis, section_key, body_md, tier)`. The body must be 100-400 characters of markdown — no headings, no lists, just prose.
 
 ## Hard rules
 
 - Every claim must be backed by evidence you actually queried. For an empty result, inspect underlying tables, filters, curations and collection failures. Say "data unavailable for this card" when evidence is missing; otherwise describe that no records match the examined scope. Neither an empty result nor an empty expected table proves no risk or a failed collection.
+- Name a person by `authors.display_name` of their canonical email (through `identity_map`), as the dashboard does. Never compose a name from an email address or login.
 - Do not propose actions, recommendations, or grades. The narrator describes; the analyst judges.
 - Do not write more than one narrative per invocation. The orchestrator calls you once per `(axis, section_key)`.
 - Describe only the metrics actually collected. Release cadence and PR cycle time are not deployment frequency or production lead time; workflow failures are not change failure rate. Respect the working-pattern opt-in supplied by the parent.

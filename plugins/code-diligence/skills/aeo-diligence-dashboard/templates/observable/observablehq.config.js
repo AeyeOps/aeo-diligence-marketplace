@@ -33,6 +33,15 @@ export default {
 .finding { font-size: 1.05rem; line-height: 1.55; max-width: 72ch; margin: 0.5rem 0 1rem; }
 .caption { color: var(--theme-foreground-muted); font-size: 0.85rem; max-width: 72ch; margin: 0.5rem 0 0; }
 .wrap { white-space: normal; overflow-wrap: anywhere; }
+.headlines { display: grid; grid-template-columns: minmax(9rem, 14rem) minmax(0, 72ch); gap: 0 1.5rem; margin: 0; }
+.headlines dt, .headlines dd { padding: 0.65rem 0; border-top: 1px solid var(--theme-foreground-faintest); }
+.headlines dt { font-weight: 600; }
+.headlines dd { margin: 0; line-height: 1.5; }
+@media (max-width: 640px) {
+  .headlines { grid-template-columns: minmax(0, 1fr); }
+  .headlines dt { padding-bottom: 0.15rem; }
+  .headlines dd { border-top: none; padding-top: 0; }
+}
 </style>`,
   footer: "code-diligence · Evidence from repository history and available analysis tools."
 };

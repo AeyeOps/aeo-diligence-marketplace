@@ -21,8 +21,8 @@ One **Observable dashboard** per target, covering **15 cards** across three dili
 | Axis | Cards |
 |---|---|
 | **People** | bus-factor map · knowledge concentration · contributor activity timeline · communication graph · hero-dependency register |
-| **Product** | hotspot map · hidden coupling · code-aging chart · burndown over time · abandoned-area register · language inventory |
-| **Process** | Repository delivery indicators · CI health · issue-triage health · working-pattern signals *(privacy-gated, off by default)* |
+| **Product** | file change hotspots · hidden coupling · code-aging chart · burndown over time · abandoned-area register · language inventory |
+| **Process** | delivery indicators · CI health · issue-triage health · working-pattern signals *(privacy-gated, off by default)* |
 
 With the target's warehouse MCP connected, the native narrator adds evidence-grounded prose to each card. A read-only chat agent answers follow-up questions ("why is the payments-service a hotspot?") with citations back to the warehouse and the repo.
 

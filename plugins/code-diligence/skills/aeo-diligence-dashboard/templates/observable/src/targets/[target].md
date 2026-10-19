@@ -1,29 +1,43 @@
 # ${target.name}
 
 ```js
-import {query, axisConfidence} from "../data/warehouse.js";
-import {missingSources, when} from "../data/labels.js";
+import {query, axisConfidence, headlines} from "../data/warehouse.js";
+import {confidenceLine, when} from "../data/labels.js";
 
 const target_id = observable.params.target;
 const target = (await query(`SELECT name, description, last_refreshed_at FROM targets WHERE target_id = ?`, [target_id]))[0];
-const axes = await Promise.all(["people", "product", "process"].map(async axis => {
-  const confidence = await axisConfidence(target_id, axis);
-  return {axis, confidence_class: confidence.confidence_class, missing: missingSources(confidence).join(", ") || "None"};
-}));
+const config = await FileAttachment("../data/config.json").json();
+const cards = (await headlines(target_id))
+  .filter(card => card.section_key !== "working_pattern_signals" || config.allow_working_pattern_card);
+const confidence = Object.fromEntries(await Promise.all(
+  ["people", "product", "process"].map(async axis => [axis, await axisConfidence(target_id, axis)])
+));
+
+function area(axis) {
+  return html`<div><p class="subtitle">${confidenceLine(confidence[axis])}</p>
+  <dl class="headlines">${cards.filter(card => card.axis === axis).flatMap(card => [
+    html`<dt><a href="${target_id}/${axis}.html#${card.anchor}">${card.title}</a></dt>`,
+    html`<dd>${card.headline}</dd>`,
+  ])}</dl></div>`;
+}
 ```
 
 <p class="subtitle">${target.description ?? ""}${target.description ? " · " : ""}Refreshed ${when(target.last_refreshed_at) || "never"}</p>
 
+## People
+
 ```js
-display(Inputs.table(axes, {
-  columns: ["axis", "confidence_class", "missing"],
-  header: {axis: "Area", confidence_class: "Confidence", missing: "Missing sources"},
-  format: {
-    axis: axis => html`<a href="${target_id}/${axis}.html">${axis[0].toUpperCase() + axis.slice(1)}</a>`,
-    confidence_class: value => value[0].toUpperCase() + value.slice(1),
-  },
-  select: false,
-}));
+display(area("people"));
 ```
 
-<p class="caption">Confidence reflects how many expected sources are present for each area.</p>
+## Product
+
+```js
+display(area("product"));
+```
+
+## Process
+
+```js
+display(area("process"));
+```
