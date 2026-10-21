@@ -1,6 +1,6 @@
 """Pydantic models for per-target settings."""
 import re
-from typing import Self
+from typing import Literal, Self
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -36,6 +36,7 @@ class AwsInspectorSource(BaseModel):
     profile: str | None = None
     region: str | None = None
     resource_prefixes: list[str] = Field(default_factory=list)
+    fix_available: list[Literal["YES", "NO", "PARTIAL"]] = Field(default_factory=list)
     snapshot_dirs: list[str] = Field(default_factory=list)
     timezone: str = "UTC"
 
@@ -77,6 +78,10 @@ class Storage(BaseModel):
 
 class Dashboard(BaseModel):
     output_path: str = "~/data/code-diligence/dashboard/"
+    security_chart_path: str | None = None
+    repository_labels: dict[str, str] = Field(default_factory=dict)
+    workflow_labels: dict[str, str] = Field(default_factory=dict)
+    contributor_labels: dict[str, str] = Field(default_factory=dict)
 
 
 class Heuristics(BaseModel):

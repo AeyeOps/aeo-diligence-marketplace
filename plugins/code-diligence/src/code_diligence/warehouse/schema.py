@@ -6,7 +6,7 @@ between versions live in `migrations.py`.
 """
 import duckdb
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 REPOWISE_HEALTH_DDL = """
     CREATE TABLE IF NOT EXISTS repowise_health (
@@ -29,6 +29,7 @@ SECURITY_DDL: tuple[str, ...] = (
       source     VARCHAR NOT NULL,
       severities VARCHAR NOT NULL,
       scope      VARCHAR NOT NULL,
+      fix_available VARCHAR NOT NULL,
       PRIMARY KEY (target_id, read_at, source)
     )
     """,

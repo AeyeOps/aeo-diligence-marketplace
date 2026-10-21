@@ -1,6 +1,7 @@
 # Portfolio
 
 ```js
+import {reportTable} from "./data/tables.js";
 import {query} from "./data/warehouse.js";
 import {when} from "./data/labels.js";
 
@@ -10,7 +11,7 @@ const targets = await query(`
   FROM targets t
   ORDER BY t.last_refreshed_at DESC NULLS LAST
 `);
-display(Inputs.table(targets, {
+display(reportTable(targets, {
   columns: ["name", "last_refreshed_at", "min_conf"],
   header: {name: "Target", last_refreshed_at: "Refreshed", min_conf: "Lowest confidence"},
   format: {

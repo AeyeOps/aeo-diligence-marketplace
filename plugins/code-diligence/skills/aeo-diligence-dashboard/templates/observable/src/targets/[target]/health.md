@@ -1,6 +1,7 @@
 # Health
 
 ```js
+import {reportTable} from "../../data/tables.js";
 import {query} from "../../data/warehouse.js";
 import {missingSources, targetName, when, wrap} from "../../data/labels.js";
 const target_id = observable.params.target;
@@ -17,7 +18,7 @@ const repoName = repo_id => repo_id ? repo_id.split("/").slice(1).join("/") : "A
 ## Sources
 
 ```js
-display(Inputs.table(confidence, {
+display(reportTable(confidence, {
   columns: ["axis", "confidence_class", "signal_completeness_pct", "missing"],
   header: {axis: "Area", confidence_class: "Confidence", signal_completeness_pct: "Sources present", missing: "Missing"},
   format: {
@@ -34,7 +35,7 @@ display(Inputs.table(confidence, {
 ## Tool failures
 
 ```js
-if (failures.length) display(Inputs.table(failures, {
+if (failures.length) display(reportTable(failures, {
   columns: ["tool", "repo_id", "class", "occurred_at", "message"],
   header: {tool: "Tool", repo_id: "Repository", class: "Problem", occurred_at: "When", message: "Message"},
   format: {repo_id: repoName, class: value => value.replace("_", " "), occurred_at: when, message: wrap},
@@ -47,7 +48,7 @@ else display(html`<p>Every tool completed on its last run.</p>`);
 ## Tool versions
 
 ```js
-display(Inputs.table(Object.entries(JSON.parse(versions[0].tooling_versions ?? "{}")).map(([tool, version]) => ({tool, version})), {
+display(reportTable(Object.entries(JSON.parse(versions[0].tooling_versions ?? "{}")).map(([tool, version]) => ({tool, version})), {
   header: {tool: "Tool", version: "Version"},
   select: false,
 }));

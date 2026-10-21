@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"/></a>
-  <a href=".claude-plugin/plugin.json"><img alt="Version" src="https://img.shields.io/badge/version-1.1.2-green.svg"/></a>
+  <a href=".claude-plugin/plugin.json"><img alt="Version" src="https://img.shields.io/badge/version-2.0.0-green.svg"/></a>
   <a href="https://claude.com/claude-code"><img alt="Runs in Claude Code" src="https://img.shields.io/badge/runs%20in-Claude%20Code-d4a574.svg"/></a>
 </p>
 
@@ -21,8 +21,8 @@ One **Observable dashboard** per target, covering **17 cards** across three dili
 | Axis | Cards |
 |---|---|
 | **People** | bus-factor map · knowledge concentration · contributor activity timeline · communication graph · hero-dependency register |
-| **Product** | file change hotspots · code health · hidden coupling · code-aging chart · burndown over time · abandoned-area register · language inventory |
-| **Process** | delivery indicators · CI health · issue-triage health · security findings *(optional, AWS Inspector)* · working-pattern signals *(privacy-gated, off by default)* |
+| **Product** | file change hotspots · code health · security findings *(optional, Inspector or supplied counts)* · hidden coupling · code-aging chart · burndown over time · abandoned-area register · language inventory |
+| **Process** | delivery indicators · CI health · issue-triage health · working-pattern signals *(privacy-gated, off by default)* |
 
 With the target's warehouse MCP connected, the native narrator adds evidence-grounded prose to each card. A read-only chat agent answers follow-up questions ("why is the payments-service a hotspot?") with citations back to the warehouse and the repo.
 
@@ -31,6 +31,9 @@ With the target's warehouse MCP connected, the native narrator adds evidence-gro
 ```text
 analyst:  /code-diligence:aeo-diligence-ingest acme --quick
 plugin:   [Sources ingested · available tool results and missing inputs recorded]
+          [Presents distinct identities and asks who they represent and how to classify them]
+analyst:  [Confirms employee / contractor / automation labels and identity aliases]
+plugin:   [Saves target-local answers · narrates results · builds the dashboard]
 
 analyst:  /code-diligence:aeo-diligence-ask acme why is the payments-service a hotspot?
 plugin:   [Cites specific commits, contributors, and measured change counts
@@ -112,16 +115,18 @@ export DILIGENCE_WAREHOUSE_PATH=~/data/code-diligence/acme/warehouse.duckdb
 
 For a newly created warehouse, reconnect the plugin MCP or start a new session after ingest. Exporting a variable in a child shell does not retarget an already running server. Standalone skills configure the server directly, as the asking skill's connection reference shows.
 
-The ingest skill then builds the dashboard. Open its configured output with:
+After assessment, the ingest skill interviews you about the distinct contributor identities, saves your answers in the target's curation files, and builds the dashboard. Refreshes preserve those answers and ask about new or unresolved identities. Open the configured output with:
 
 ```sh
 python -m http.server -d ~/data/code-diligence/acme/dashboard
 # → http://localhost:8000
 ```
 
-> **Optional analysis tools** (`git-fame`, `git-of-theseus`, `hercules`, `code-maat`, `repowise`) unlock additional evidence. The skills check availability, explain the results lost through each gap, and establish whether to install/repair it or proceed with reduced coverage. The CLI records tool failures on Health while other analyses continue; a successful CLI exit does not establish full coverage.
+> **Optional analysis tools** (`git-fame`, `hercules`, `code-maat`, `repowise`) unlock additional evidence. The skills check availability, explain the results lost through each gap, and establish whether to install/repair it or proceed with reduced coverage. The CLI records tool failures on Health while other analyses continue; a successful CLI exit does not establish full coverage.
 >
 > Full optional-tool install commands: [Installing the optional analysis tools](#installing-the-optional-analysis-tools) below.
+
+Each dashboard includes a Dashboard return link, a full-report PDF download in the page actions and sidebar, and section PDF downloads. US Letter PDFs share the dashboard's evidence snapshot, place the visual dashboard after the cover, and highlight each source. The overview compares monthly commits with code lines added and removed. Repository, workflow and contributor display names remain target-owned settings. See [PDF reports](skills/aeo-diligence-dashboard/references/pdf-reports.md) for Chromium setup and output details.
 
 ## Reading the output
 
@@ -142,11 +147,10 @@ When a card shows "low confidence," it means the underlying source data was inco
 <details>
 <summary><strong>Installing the optional analysis tools</strong></summary>
 
-Use the [host installation guidance](skills/aeo-diligence-ingest/references/tool-prerequisites.md#choose-the-installation-environment) to select compatible tools for macOS or Linux on ARM64 or x86_64, or a Linux execution environment on Windows. Use its package manager or mise for git, uv, Node 22+, Go and Java 17+. Install the optional Python CLIs in isolated uv tool environments:
+Use the [host installation guidance](skills/aeo-diligence-ingest/references/tool-prerequisites.md#choose-the-installation-environment) to select compatible tools for macOS or Linux on ARM64 or x86_64, or a Linux execution environment on Windows. Use its package manager or mise for git, uv, Node 22+, Go and Java 17+. The plugin includes git-of-theseus and its pinned file-type catalog. Install the other optional Python CLIs in isolated uv tool environments:
 
 ```sh
 uv tool install git-fame
-uv tool install git-of-theseus
 uv tool install repowise
 DO_NOT_TRACK=1 repowise telemetry disable
 repowise telemetry status

@@ -1,4 +1,5 @@
 import {query} from "./warehouse.js";
+import {FileAttachment} from "observablehq:stdlib";
 
 export const SINGLE_OWNER_SHARE = 0.9;
 
@@ -33,12 +34,15 @@ export function busFactor(targetId) {
 
 export function ownershipByPerson(targetId) {
   return query(`
-    SELECT COALESCE(im.canonical_email, os.author_email) AS person, SUM(os.owned_loc) AS owned_loc
+    SELECT COALESCE(im.canonical_email, os.author_email) AS person, SUM(os.owned_loc) AS owned_loc,
+           COALESCE(cc.class, 'unknown') AS class
     FROM ownership_share os
     JOIN repos r ON r.repo_id = os.repo_id
     LEFT JOIN identity_map im ON im.target_id = r.target_id AND im.raw_email = os.author_email
+    LEFT JOIN contributor_classification cc ON cc.target_id = r.target_id
+      AND cc.author_email = COALESCE(im.canonical_email, os.author_email)
     WHERE r.target_id = ? AND os.source = 'git-fame'
-    GROUP BY 1 HAVING SUM(os.owned_loc) > 0 ORDER BY owned_loc DESC
+    GROUP BY 1, 3 HAVING SUM(os.owned_loc) > 0 ORDER BY owned_loc DESC
   `, [targetId]);
 }
 
@@ -159,20 +163,35 @@ export function delivery(targetId) {
 export function ciHealth(targetId) {
   return query(`
     SELECT r.name AS repo, am.workflow_name, COUNT(*) AS runs,
+           COUNT(*) FILTER (WHERE am.conclusion='success') AS passed,
            AVG(CASE WHEN am.conclusion='success' THEN 1.0 ELSE 0.0 END) AS success_rate,
-           AVG(am.duration_seconds) AS avg_duration_s
+           AVG(am.duration_seconds) AS avg_duration_s,
+           MIN(am.ran_at) AS first_run_at, MAX(am.ran_at) AS last_run_at
     FROM actions_metrics am JOIN repos r ON r.repo_id = am.repo_id
     WHERE r.target_id = ? AND am.conclusion IS NOT NULL GROUP BY r.repo_id, r.name, am.workflow_name
     ORDER BY runs DESC
   `, [targetId]);
 }
 
-export function securityMonthly(targetId) {
+export function repositoryHistory(targetId) {
   return query(`
-    SELECT month, severity, opening, opened, removed, closing, first_read_at, last_read_at,
-           opening_from_first_read, month_timezone
-    FROM security_monthly WHERE target_id = ? ORDER BY month, severity
+    SELECT repo_id, name, first_commit_at, last_commit_at
+    FROM repos WHERE target_id = ? ORDER BY name
   `, [targetId]);
+}
+
+let activityData;
+
+export async function developmentActivity(targetId) {
+  activityData ??= FileAttachment("./activity.json").json();
+  return (await activityData)[targetId];
+}
+
+let securityData;
+
+export async function securityPeriods(targetId) {
+  securityData ??= FileAttachment("./security.json").json();
+  return (await securityData)[targetId];
 }
 
 export function issueTriage(targetId) {

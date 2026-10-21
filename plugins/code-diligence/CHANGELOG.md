@@ -5,6 +5,43 @@ All notable changes to the `code-diligence` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.0] — 2026-10-21
+
+### Changed
+- **Breaking:** skills carry an `aeo-diligence-` prefix, and their slash commands change with them: `asking-diligence` → `aeo-diligence-ask`, `building-dashboard` → `aeo-diligence-dashboard`, `ingesting-target` → `aeo-diligence-ingest`, `interpreting-tool-output` → `aeo-diligence-tool-output`, `refreshing-target` → `aeo-diligence-refresh`, `understanding-pe-diligence-axes` → `aeo-diligence-axes`.
+- **Breaking:** target settings live beside each target's warehouse as `diligence.local.md`, not in `~/.claude/code-diligence-<target>.local.md`. The skills also run standalone, outside the plugin.
+- `bin/run` is the single entry point for skills, hooks and the warehouse server. It ignores an inherited `UV_PROJECT_ENVIRONMENT`, so the runtime no longer installs into the calling project.
+- The dashboard leads each card with its written finding, then plain tables and charts. The overview opens with one summary of the People, Product and Process numbers, each linked to its card.
+- Every card and summary number names the tool that produced it. The dashboard renders in light mode only.
+- Security findings sit on the Product page.
+- git-of-theseus and its file-type catalog ship with the plugin. It no longer needs a separate install.
+- The warehouse schema is at version 7. Existing warehouses migrate forward.
+
+### Added
+- Optional AWS Inspector findings through `sources.aws_inspector`: profile, region, resource prefixes, fix availability, saved snapshot folders and time zone.
+- A security chart of findings by severity per period. It reads Inspector history or counts supplied through `dashboard.security_chart_path`.
+- Repowise code health card and summary rows.
+- PDF reports on every build: a full report and one per section, US Letter, rendered in headless Chromium. Set `DILIGENCE_CHROMIUM_PATH` to choose the browser.
+- A contributor interview after ingest. The analyst classifies each identity and confirms aliases, and refreshes keep those answers.
+- Display labels for repositories, workflows and contributors in the target settings.
+- An overview chart of monthly commits against code lines added and removed.
+- Local checkouts collect GitHub platform data from their origin repository when a token is set.
+
+### Removed
+- The review-discipline card. GitHub records cannot show review done before a commit.
+- The Repowise critical-findings row on the overview, which counted code-quality markers.
+
+### Fixed
+- Pipeline, tool adapter and dashboard integration repairs, with full analyzer coverage restored.
+- git-fame and code-maat merge author aliases by email.
+- Dashboard data states render accurately, and narrative markdown renders in cards.
+- Refresh completion time is stored in UTC.
+- Workflow runs group by workflow file even when `run-name` changes per run.
+- Fetch skips tags, so a tag moved upstream no longer drops a repository.
+- An empty GitHub source counts as present, and a tool's later success clears its earlier failures.
+- File counts cover files present at HEAD, and bus factor leaves out bot-owned lines.
+- Knowledge concentration no longer rounds 99.95% up to 100%.
+
 ## [1.1.2] — 2026-05-16
 
 ### Added

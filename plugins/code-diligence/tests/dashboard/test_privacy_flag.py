@@ -28,7 +28,7 @@ def test_render_ships_privacy_setting(tmp_path: Path, enabled: bool) -> None:
     configs = list((output / "_file" / "data").glob("config.*.json"))
     assert len(configs) == 1
     assert json.loads(configs[0].read_text()) == {
-        "allow_working_pattern_card": enabled, "targets": ["acme"],
+        "allow_working_pattern_card": enabled, "targets": ["acme"], "display_labels": {},
     }
     assert (output / "targets" / "acme" / "process.html").exists()
     assert (TEMPLATE_DIR / "src" / "data" / "warehouse.js").read_bytes() == template

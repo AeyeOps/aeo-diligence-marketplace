@@ -1,6 +1,7 @@
 # Repos
 
 ```js
+import {reportTable} from "../../data/tables.js";
 import {query} from "../../data/warehouse.js";
 import {count, day, repoClassLabel, targetName} from "../../data/labels.js";
 const target_id = observable.params.target;
@@ -17,7 +18,7 @@ const repos = await query(`
 <p class="subtitle">${name}</p>
 
 ```js
-display(Inputs.table(repos, {
+display(reportTable(repos, {
   columns: ["name", "class", "commits", "last_commit_at", "is_archived"],
   header: {name: "Repository", class: "Type", commits: "Commits", last_commit_at: "Last commit", is_archived: "Archived"},
   format: {class: repoClassLabel, commits: count, last_commit_at: day, is_archived: value => value ? "Yes" : "No"},

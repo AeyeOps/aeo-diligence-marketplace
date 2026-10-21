@@ -13,7 +13,7 @@ Health returns an object with `findings`; dead-code returns an array. The adapte
 
 A missing executable, failed command, or invalid response is a failed tool run, not an empty finding set. The per-tool transaction preserves the prior snapshot on failure. A successful empty result clears it. Each subprocess has a 300-second timeout.
 
-Repowise defaults to anonymous usage telemetry. The adapter sets `REPOWISE_TELEMETRY_DISABLED=1` for both subprocesses. For manual CLI analysis, disable and verify telemetry first; see [prerequisite coverage](../../aeo-diligence-ingest/references/tool-prerequisites.md#local-analysis-and-network-use). Package downloads and permitted npm version checks are separate from vendor telemetry and model-generated code.
+Repowise defaults to anonymous usage telemetry. The adapter sets `REPOWISE_TELEMETRY_DISABLED=1` for both subprocesses. For manual CLI analysis, disable and verify telemetry first; see the local-analysis guidance in the `aeo-diligence-ingest` skill's `references/tool-prerequisites.md`. Package downloads and permitted npm version checks are separate from vendor telemetry and model-generated code.
 
 In 0.57.0, the spawned duplication worker can write debug logs to JSON stdout for repositories with at least 1,000 parsed files. Use the provider worker fix, `vendor/repowise-0.57.0-worker-logging.patch` under the plugin root, documented in the prerequisite reference. Keep the adapter's strict JSON parse: worker diagnostics belong on stderr, and malformed provider output remains a visible failure.
 

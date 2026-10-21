@@ -5,3 +5,5 @@ src/.observablehq/
 data/warehouse.duckdb
 src/data/warehouse.duckdb
 src/data/config.json
+src/data/security.json
+src/data/activity.json

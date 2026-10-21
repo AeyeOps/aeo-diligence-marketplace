@@ -56,7 +56,7 @@ export async function query(sql, params = []) {
   ));
 }
 
-const NO_NARRATIVE = "No narrative has been generated for this card.";
+const NO_NARRATIVE = "Summary unavailable.";
 
 function inline(text) {
   const span = document.createElement("span");

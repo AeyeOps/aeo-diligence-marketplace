@@ -60,6 +60,22 @@ def _add_security_findings(conn: duckdb.DuckDBPyConnection) -> None:
     conn.execute("COMMIT")
 
 
+def _record_security_fix_filter(conn: duckdb.DuckDBPyConnection) -> None:
+    """Record the fix-availability selection used for existing Inspector reads."""
+    conn.execute("BEGIN TRANSACTION")
+    conn.execute(SECURITY_DDL[0].replace("security_reads", "security_reads_v7"))
+    conn.execute(
+        "INSERT INTO security_reads_v7 "
+        "SELECT target_id, read_at, source, severities, scope, 'PARTIAL,YES' FROM security_reads"
+    )
+    conn.execute("DROP TABLE security_reads")
+    conn.execute("ALTER TABLE security_reads_v7 RENAME TO security_reads")
+    conn.execute(
+        "INSERT INTO schema_version (version) SELECT 7 WHERE NOT EXISTS (SELECT 1 FROM schema_version WHERE version = 7)"
+    )
+    conn.execute("COMMIT")
+
+
 MIGRATIONS: dict[int, Callable[[duckdb.DuckDBPyConnection], None]] = {
     1: init_schema,
     2: init_schema,
@@ -67,6 +83,7 @@ MIGRATIONS: dict[int, Callable[[duckdb.DuckDBPyConnection], None]] = {
     4: _drop_pr_review_fields,
     5: _add_head_flag_and_repowise_health,
     6: _add_security_findings,
+    7: _record_security_fix_filter,
 }
 
 

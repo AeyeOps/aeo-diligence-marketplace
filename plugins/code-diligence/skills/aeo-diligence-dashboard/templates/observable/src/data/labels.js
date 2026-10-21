@@ -1,4 +1,5 @@
 import {html} from "npm:htl";
+import {FileAttachment} from "observablehq:stdlib";
 import {query} from "./warehouse.js";
 
 const percent = new Intl.NumberFormat(undefined, {style: "percent", maximumFractionDigits: 1});
@@ -40,9 +41,9 @@ const SOURCE_LABELS = {
 };
 export const sourceLabel = value => SOURCE_LABELS[value] ?? value;
 
-const SEVERITY_LABELS = {CRITICAL: "Critical", HIGH: "High", MEDIUM: "Medium", LOW: "Low", INFORMATIONAL: "Informational", UNTRIAGED: "Untriaged"};
+const SEVERITY_LABELS = {CRITICAL: "Critical", HIGH: "High", MEDIUM: "Medium", LOW: "Low", INFORMATIONAL: "Informational", UNTRIAGED: "Untriaged", UNKNOWN: "Unknown"};
 export const SEVERITY_ORDER = Object.values(SEVERITY_LABELS);
-export const SEVERITY_COLORS = ["#8f1d21", "#d9480f", "#e8a317", "#6f8aa6", "#aab4bf", "#cfd5db"];
+export const SEVERITY_COLORS = ["#8f1d21", "#d9480f", "#e8a317", "#6f8aa6", "#aab4bf", "#cfd5db", "#777d87"];
 export const severityLabel = value => SEVERITY_LABELS[value] ?? value;
 export const monthLabel = value => new Date(value).toLocaleDateString(undefined, {month: "short", year: "numeric", timeZone: "UTC"});
 
@@ -62,6 +63,8 @@ export async function targetName(targetId) {
 }
 
 export async function personNames(targetId) {
+  const config = await FileAttachment("./config.json").json();
+  const labels = config.display_labels[targetId]?.contributors ?? {};
   const rows = await query(`
     SELECT COALESCE(im.canonical_email, a.author_email) AS person, a.author_email, a.display_name
     FROM authors a
@@ -72,5 +75,8 @@ export async function personNames(targetId) {
   const canonical = new Map(rows.map(row => [row.author_email, row.person]));
   const names = new Map();
   for (const row of rows) if (!names.has(row.person) && row.display_name) names.set(row.person, row.display_name);
-  return email => names.get(canonical.get(email) ?? email) ?? email;
+  return email => {
+    const person = canonical.get(email) ?? email;
+    return labels[person] ?? names.get(person) ?? email;
+  };
 }

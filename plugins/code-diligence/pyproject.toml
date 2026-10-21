@@ -7,12 +7,15 @@ license-files = ["LICENSE"]
 dependencies = [
     "boto3>=1.43.115",
     "duckdb~=1.5.2",
+    "git-of-theseus==0.3.4",
     "httpx~=0.28.1",
     "pydantic~=2.13.4",
     "pygit2~=1.19.2",
+    "pygments==2.21.0",
     "pyyaml~=6.0.3",
     "rich~=15.0.0",
     "typer~=0.25.1",
+    "wcmatch>=10",
 ]
 
 [dependency-groups]

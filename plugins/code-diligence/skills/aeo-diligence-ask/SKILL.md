@@ -8,10 +8,10 @@ allowed-tools: Read, Agent, mcp__plugin_code-diligence_diligence-warehouse__list
 
 In Claude Code invoke `/code-diligence:aeo-diligence-ask` from the plugin or `/aeo-diligence-ask` as a standalone skill; in Codex invoke `$aeo-diligence-ask`.
 
-Read the target's `diligence.local.md` in its target folder; [aeo-diligence-ingest](../aeo-diligence-ingest/SKILL.md) step 1 locates it. Confirm the connected warehouse contains that target with a read-only query before delegating. A shell `export` cannot retarget a server already running in the parent harness; use [the connection boundary](references/asker-boundary.md) when the MCP is unavailable or points to a different warehouse.
+Read the target's `diligence.local.md` in its target folder; the `aeo-diligence-ingest` skill's step 1 locates it. Confirm the connected warehouse contains that target with a read-only query before delegating. A shell `export` cannot retarget a server already running in the parent harness; use [the connection boundary](references/asker-boundary.md) when the MCP is unavailable or points to a different warehouse.
 
 Invoke the plugin's `diligence-asker` agent through the current runtime's subagent tool, or without the plugin a subagent briefed with `agents/diligence-asker.md` under the plugin root and limited to its read-only tools. Pass the user's question verbatim, target ID, target name, warehouse path and repository root. Reuse that agent for follow-ups about the same target. If subagents are unavailable, answer with the same read-only tools and boundary.
 
-Return the findings with warehouse or source citations and distinguish missing evidence from a negative result. Requests to change curations or regenerate narratives belong in [aeo-diligence-refresh](../aeo-diligence-refresh/SKILL.md).
+Return the findings with warehouse or source citations and distinguish missing evidence from a negative result. Requests to change curations or regenerate narratives belong in the `aeo-diligence-refresh` skill.
 
 Keep the connection reference aligned with changes observed during use.

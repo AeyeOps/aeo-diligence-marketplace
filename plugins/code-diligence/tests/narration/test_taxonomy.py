@@ -8,7 +8,7 @@ def test_taxonomy_has_all_spec_sections() -> None:
     sections = {(t.axis, t.section_key) for t in TAXONOMY}
     assert len(sections) == 17
     by_axis = {axis: sum(1 for a, _ in sections if a == axis) for axis in {"people", "product", "process"}}
-    assert by_axis == {"people": 5, "product": 7, "process": 5}
+    assert by_axis == {"people": 5, "product": 8, "process": 4}
 
 
 def test_load_taxonomy_into_warehouse(tmp_path: Path) -> None:

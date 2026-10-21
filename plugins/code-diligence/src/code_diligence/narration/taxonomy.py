@@ -25,9 +25,12 @@ TAXONOMY: tuple[SectionDef, ...] = (
     SectionDef("people", "hero_dependency_register", "Hero / dependency register",
                "Files where one author accounts for at least 90% of historical additions according to code-maat."),
     SectionDef("product", "hotspot_map", "File change hotspots",
-               "File revision counts in production and tooling repositories. The score uses complexity only when collected; the current pipeline does not populate complexity."),
+               "Files that exist at HEAD in production or tooling repositories, ranked by revision count. Complexity is not collected or included in this ranking."),
     SectionDef("product", "code_health", "Code health",
                "Repowise health scores from 1 to 10, higher is healthier, and Repowise findings by severity per repository."),
+    SectionDef("product", "security_findings", "Security findings",
+               "Findings added, removed and remaining on in-scope resources over the requested periods. "
+               "Counting basis and coverage distinguish observed events, snapshot changes and provider aggregates."),
     SectionDef("product", "hidden_coupling_matrix", "Hidden coupling matrix",
                "Code-maat file pairs with shared-commit counts, support and lift from walker facts. The card displays lift above 1.5 and support above 0.05."),
     SectionDef("product", "code_aging_chart", "Code aging chart",
@@ -44,8 +47,6 @@ TAXONOMY: tuple[SectionDef, ...] = (
                "Completed workflow outcomes and durations by repository and workflow file."),
     SectionDef("process", "issue_triage_health", "Issue triage health",
                "Average time to first issue comment and count of issues still open after 90 days. A first comment is not necessarily a maintainer response."),
-    SectionDef("process", "security_findings", "Security findings",
-               "AWS Inspector findings with a fix available on in-scope resources that were open at any time in each month, by severity, for the trailing six months. History comes from saved snapshots and live reads, because Inspector deletes closed findings after 30 days."),
     SectionDef("process", "working_pattern_signals", "Working pattern signals",
                "Commits by hour-of-day × day-of-week, aggregated to repo level."),
 )
@@ -53,6 +54,7 @@ TAXONOMY: tuple[SectionDef, ...] = (
 
 def load_taxonomy_into_warehouse(conn: duckdb.DuckDBPyConnection) -> None:
     """Idempotent upsert of TAXONOMY into axes_taxonomy."""
+    conn.execute("UPDATE narratives SET axis = 'product' WHERE axis = 'process' AND section_key = 'security_findings'")
     conn.execute("DELETE FROM axes_taxonomy")
     rows = [(s.axis, s.section_key, s.title, s.description) for s in TAXONOMY]
     conn.executemany(

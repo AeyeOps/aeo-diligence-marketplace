@@ -1,10 +1,10 @@
 # Process
 
 ```js
+import {reportTable} from "../../data/tables.js";
 import {query, narrative, axisConfidence} from "../../data/warehouse.js";
-import {ciHealth, delivery, issueTriage, securityMonthly} from "../../data/metrics.js";
+import {ciHealth, delivery, issueTriage} from "../../data/metrics.js";
 import {confidenceLine, count, duration, hours, pct, targetName, wrap} from "../../data/labels.js";
-import {securityChart} from "../../data/charts.js";
 import * as Plot from "npm:@observablehq/plot";
 const target_id = observable.params.target;
 const conf = await axisConfidence(target_id, "process");
@@ -23,11 +23,12 @@ const allow_working_pattern_card = !!config.allow_working_pattern_card;
 const dora = await delivery(target_id);
 const narr = await narrative(target_id, "process", "dora_quadrant");
 const uses_releases = dora.some(row => row.releases_total > 0);
-display(Inputs.table(dora.map(row => ({
+display(reportTable(dora.map(row => ({
   ...row,
   avg_pr_cycle_time_h: row.avg_pr_cycle_time_h === null ? "No merged PRs" : hours(row.avg_pr_cycle_time_h),
   workflow_failure_rate: row.workflow_failure_rate === null ? "No runs" : pct(row.workflow_failure_rate),
 })), {
+  select: false,
   columns: uses_releases
     ? ["repo", "releases_l30d", "avg_pr_cycle_time_h", "workflow_failure_rate"]
     : ["repo", "avg_pr_cycle_time_h", "workflow_failure_rate"],
@@ -46,7 +47,8 @@ display(Inputs.table(dora.map(row => ({
 ```js
 const ci = await ciHealth(target_id);
 const narr2 = await narrative(target_id, "process", "ci_health");
-display(Inputs.table(ci, {
+display(reportTable(ci, {
+  select: false,
   columns: ["workflow_name", "repo", "runs", "success_rate", "avg_duration_s"],
   header: {workflow_name: "Workflow", repo: "Repository", runs: "Runs", success_rate: "Passing", avg_duration_s: "Average duration"},
   format: {workflow_name: wrap, repo: wrap, runs: count, success_rate: pct, avg_duration_s: duration},
@@ -65,34 +67,17 @@ display(Inputs.table(ci, {
 ```js
 const issues = await issueTriage(target_id);
 const narr3 = await narrative(target_id, "process", "issue_triage_health");
-if (issues.length) display(Inputs.table(issues.map(row => ({
+if (issues.length) display(reportTable(issues.map(row => ({
   ...row,
   avg_first_response_days: row.avg_first_response_days === null ? "No comments" : row.avg_first_response_days < 1 ? `${Math.round(row.avg_first_response_days * 24 * 60)} min` : `${row.avg_first_response_days.toFixed(1)} days`,
 })), {
+  select: false,
   header: {repo: "Repository", total_issues: "Issues", avg_first_response_days: "Average time to first comment", stale_open: "Open over 90 days"},
   format: {total_issues: count, stale_open: count},
 }));
 ```
 
 <p class="caption"><span class="source">Source: GitHub Issues.</span> Issues tracked in other tools do not appear.</p>
-
----
-
-## Security findings
-
-<p class="finding">${narr4.body}</p>
-
-```js
-const security = await securityMonthly(target_id);
-const narr4 = await narrative(target_id, "process", "security_findings");
-if (security.length) {
-  display(securityChart(security, {width, height: 280}));
-} else {
-  display(html`<p>AWS Inspector findings were not collected for this target.</p>`);
-}
-```
-
-<p class="caption"><span class="source">Source: AWS Inspector.</span> Each column counts findings with a fix available, on the target's resources, that were open at any time in the month. A finding counts once per month. Months end in ${security[0]?.month_timezone ?? "UTC"}, and the current month runs to the latest read. AWS deletes closed findings after 30 days, so months without saved snapshots or reads show no data.</p>
 
 ```js
 if (allow_working_pattern_card) {

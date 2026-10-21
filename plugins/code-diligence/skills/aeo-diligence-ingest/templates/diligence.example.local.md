@@ -18,6 +18,7 @@ sources:
     profile: example-aws-profile
     region: us-east-1
     resource_prefixes: [example-app]
+    fix_available: []
     snapshot_dirs: []
     timezone: UTC
 storage:
@@ -26,7 +27,11 @@ storage:
   curation_dir: ~/data/code-diligence/example-target/curation/
 dashboard:
   output_path: ~/data/code-diligence/example-target/dashboard/
+  security_chart_path: null
+  repository_labels: {}
+  workflow_labels: {}
+  contributor_labels: {}
 heuristics:
   abandoned_threshold_days: 180
-  fte_inference: true
+  fte_inference: false
   allow_working_pattern_card: false

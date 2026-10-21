@@ -1,6 +1,7 @@
 # People
 
 ```js
+import {reportTable} from "../../data/tables.js";
 import {query, narrative, axisConfidence} from "../../data/warehouse.js";
 import {busFactor, heroFiles} from "../../data/metrics.js";
 import {CLASS_ORDER, classLabel, confidenceLine, count, personNames, pct, targetName, wrap} from "../../data/labels.js";
@@ -21,7 +22,8 @@ const nameOf = await personNames(target_id);
 ```js
 const bus_factor_rows = await busFactor(target_id);
 const narr = await narrative(target_id, "people", "bus_factor_map");
-display(Inputs.table(bus_factor_rows.map(row => ({...row, bus_factor_estimate: row.bus_factor_estimate ?? "Not established"})), {
+display(reportTable(bus_factor_rows.map(row => ({...row, bus_factor_estimate: row.bus_factor_estimate ?? "Not established"})), {
+  select: false,
   columns: ["repo", "confirmed_ftes", "bus_factor_estimate"],
   header: {repo: "Repository", confirmed_ftes: "Confirmed employees", bus_factor_estimate: "Bus factor"},
 }));
@@ -55,6 +57,8 @@ const conc_rows = await query(`
 `, [target_id]);
 const narr2 = await narrative(target_id, "people", "knowledge_concentration");
 display(Plot.plot({
+  width: Math.min(width, 1040),
+  style: {fontSize: "12px"},
   marks: [
     Plot.barX(conc_rows, {x: "top1_pct", y: "repo", sort: {y: "-x"}, fill: "var(--theme-foreground-focus)", tip: true}),
     Plot.text(conc_rows, {x: "top1_pct", y: "repo", text: row => `${+row.top1_pct.toFixed(2)}% · ${nameOf(row.top_owner)}`, textAnchor: "start", dx: 6, fill: "currentColor"}),
@@ -93,18 +97,20 @@ const narr3 = await narrative(target_id, "people", "contributor_activity_timelin
 const monthly_totals = d3.rollup(activity_rows, rows => d3.sum(rows, row => row.active_authors), row => +row.month);
 const peak = d3.max(monthly_totals.values()) ?? 1;
 display(Plot.plot({
+  width: Math.min(width, 1040),
+  style: {fontSize: "12px"},
   marks: [
     Plot.rectY(activity_rows, {x: "month", interval: "month", y: "active_authors", fill: row => classLabel(row.class), tip: true}),
     Plot.ruleY([0]),
   ],
   color: {legend: true, domain: CLASS_ORDER, scheme: "observable10"},
   x: {label: null},
-  y: {label: "People active", ticks: peak, tickFormat: "d"},
+  y: {label: "Contributors active", ticks: peak, tickFormat: "d"},
   height: 240,
 }));
 ```
 
-<p class="caption"><span class="source">Source: git history.</span> Distinct people committing each month, after identity merges, by contributor label.</p>
+<p class="caption"><span class="source">Source: git history.</span> Distinct contributors committing each month, after identity merges, by contributor label.</p>
 
 ---
 
@@ -156,7 +162,7 @@ graph.append("g").attr("fill", "currentColor").attr("font-size", 12).selectAll("
 display(graph.node());
 ```
 
-<p class="caption"><span class="source">Source: git history.</span> People linked when they changed the same file in the same month; line width grows with those shared file-months. Co-editing is not evidence of communication.</p>
+<p class="caption"><span class="source">Source: git history.</span> Contributors linked when they changed the same file in the same month; line width grows with those shared file-months. Co-editing is not evidence of communication.</p>
 
 ---
 
@@ -167,7 +173,8 @@ display(graph.node());
 ```js
 const heroes = await heroFiles(target_id);
 const narr5 = await narrative(target_id, "people", "hero_dependency_register");
-display(Inputs.table(heroes, {
+display(reportTable(heroes, {
+  select: false,
   columns: ["file", "repo", "owner", "owned_pct", "revisions"],
   header: {file: "File", repo: "Repository", owner: "Owner", owned_pct: "Owner share", revisions: "Changes"},
   format: {file: wrap, repo: wrap, owner: value => wrap(nameOf(value)), owned_pct: pct, revisions: count},
